@@ -1,8 +1,8 @@
 FROM oven/bun:latest AS builder
 
 WORKDIR /build
-COPY ./web/package.json ./web/bun.lock ./
-RUN bun install --frozen-lockfile
+COPY ./web/package.json ./
+RUN bun install
 COPY ./web .
 COPY ./VERSION .
 RUN DISABLE_ESLINT_PLUGIN='true' VITE_REACT_APP_VERSION=$(cat VERSION) bun run build
