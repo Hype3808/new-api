@@ -1,7 +1,7 @@
 FROM oven/bun:latest AS builder
 
 WORKDIR /build
-COPY web/package.json web/bun.lock ./
+COPY ./web/package.json ./web/bun.lock ./
 RUN bun install --frozen-lockfile
 COPY ./web .
 COPY ./VERSION .
