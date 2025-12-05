@@ -33,10 +33,7 @@ RUN go build -ldflags "-s -w -X 'github.com/QuantumNous/new-api/common.Version=$
 
 FROM alpine:latest
 
-RUN apk upgrade --no-cache \
-    && apk add --no-cache ca-certificates tzdata \
-    && update-ca-certificates \
-    && rm -rf /var/cache/apk/*
+RUN apk add --no-cache ca-certificates tzdata
 
 COPY --from=builder2 /build/new-api /
 EXPOSE 3000
