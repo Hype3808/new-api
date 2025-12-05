@@ -18,11 +18,17 @@ ENV GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64}
 
 WORKDIR /build
 
+# Copy only go.mod and go.sum first to leverage Docker cache
 COPY go.mod go.sum ./
-RUN go mod download
+RUN go mod download && go mod verify
 
-COPY --from=builder /build/dist ./web/dist
+# Copy source code after dependencies are cached
 COPY . .
+
+# Copy web dist from builder
+COPY --from=builder /build/dist ./web/dist
+
+# Build with optimizations
 RUN go build -ldflags "-s -w -X 'github.com/QuantumNous/new-api/common.Version=$(cat VERSION)'" -o new-api
 
 FROM alpine:latest

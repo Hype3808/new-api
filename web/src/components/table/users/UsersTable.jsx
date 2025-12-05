@@ -40,6 +40,8 @@ const UsersTable = (usersData) => {
     pageSize,
     userCount,
     compactMode,
+    enableBatchOperation,
+    setSelectedUsers,
     handlePageChange,
     handlePageSizeChange,
     handleRow,
@@ -176,6 +178,15 @@ const UsersTable = (usersData) => {
         hidePagination={true}
         loading={loading}
         onRow={handleRow}
+        rowSelection={
+          enableBatchOperation
+            ? {
+                onChange: (selectedRowKeys, selectedRows) => {
+                  setSelectedUsers(selectedRows);
+                },
+              }
+            : null
+        }
         empty={
           <Empty
             image={<IllustrationNoResult style={{ width: 150, height: 150 }} />}

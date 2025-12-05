@@ -291,8 +291,34 @@ func GetAllUsers(c *gin.Context) {
 func SearchUsers(c *gin.Context) {
 	keyword := c.Query("keyword")
 	group := c.Query("group")
+	idMinStr := c.Query("id_min")
+	idMaxStr := c.Query("id_max")
+	requestCountStr := c.Query("request_count")
+	requestCountMode := c.Query("request_count_mode")
+
+	// Parse ID range filters
+	var idMin, idMax int
+	if idMinStr != "" {
+		if val, err := strconv.Atoi(idMinStr); err == nil {
+			idMin = val
+		}
+	}
+	if idMaxStr != "" {
+		if val, err := strconv.Atoi(idMaxStr); err == nil {
+			idMax = val
+		}
+	}
+
+	// Parse request count filter
+	var requestCount int
+	if requestCountStr != "" {
+		if val, err := strconv.Atoi(requestCountStr); err == nil {
+			requestCount = val
+		}
+	}
+
 	pageInfo := common.GetPageQuery(c)
-	users, total, err := model.SearchUsers(keyword, group, pageInfo.GetStartIdx(), pageInfo.GetPageSize())
+	users, total, err := model.SearchUsers(keyword, group, idMin, idMax, requestCount, requestCountMode, pageInfo.GetStartIdx(), pageInfo.GetPageSize())
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -302,6 +328,64 @@ func SearchUsers(c *gin.Context) {
 	pageInfo.SetItems(users)
 	common.ApiSuccess(c, pageInfo)
 	return
+}
+
+type BatchManageRequest struct {
+	Ids    []int  `json:"ids"`
+	Action string `json:"action"`
+}
+
+// BatchManageUsers handles batch enable/disable operations on users
+func BatchManageUsers(c *gin.Context) {
+	var req BatchManageRequest
+	err := json.NewDecoder(c.Request.Body).Decode(&req)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "无效的参数",
+		})
+		return
+	}
+
+	if len(req.Ids) == 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "请选择要操作的用户",
+		})
+		return
+	}
+
+	if req.Action != "enable" && req.Action != "disable" {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "无效的操作类型",
+		})
+		return
+	}
+
+	myRole := c.GetInt("role")
+	var status int
+	if req.Action == "enable" {
+		status = common.UserStatusEnabled
+	} else {
+		status = common.UserStatusDisabled
+	}
+
+	// Perform batch update
+	count, err := model.BatchUpdateUserStatus(req.Ids, status, myRole)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "",
+		"data":    count,
+	})
 }
 
 func GetUser(c *gin.Context) {

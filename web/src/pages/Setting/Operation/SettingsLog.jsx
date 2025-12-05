@@ -46,6 +46,7 @@ export default function SettingsLog(props) {
   const [loadingCleanHistoryLog, setLoadingCleanHistoryLog] = useState(false);
   const [inputs, setInputs] = useState({
     LogConsumeEnabled: false,
+    LogIpEnabled: false,
     historyTimestamp: dayjs().subtract(1, 'month').toDate(),
   });
   const refForm = useRef();
@@ -214,6 +215,22 @@ export default function SettingsLog(props) {
                       LogConsumeEnabled: value,
                     });
                   }}
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.Switch
+                  field={'LogIpEnabled'}
+                  label={t('启用全局IP记录')}
+                  size='default'
+                  checkedText='｜'
+                  uncheckedText='〇'
+                  onChange={(value) => {
+                    setInputs({
+                      ...inputs,
+                      LogIpEnabled: value,
+                    });
+                  }}
+                  extraText={t('开启后将为所有用户记录请求和错误日志的IP地址')}
                 />
               </Col>
               <Col xs={24} sm={12} md={8} lg={8} xl={8}>

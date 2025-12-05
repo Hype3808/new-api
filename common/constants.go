@@ -72,6 +72,7 @@ var DebugEnabled bool
 var MemoryCacheEnabled bool
 
 var LogConsumeEnabled = true
+var LogIpEnabled = false // System-wide IP logging for all users
 
 var SMTPServer = ""
 var SMTPPort = 587

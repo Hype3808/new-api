@@ -219,7 +219,7 @@ func GetAllUsers(pageInfo *common.PageInfo) (users []*User, total int64, err err
 	return users, total, nil
 }
 
-func SearchUsers(keyword string, group string, startIdx int, num int) ([]*User, int64, error) {
+func SearchUsers(keyword string, group string, idMin int, idMax int, requestCount int, requestCountMode string, startIdx int, num int) ([]*User, int64, error) {
 	var users []*User
 	var total int64
 	var err error
@@ -238,29 +238,44 @@ func SearchUsers(keyword string, group string, startIdx int, num int) ([]*User, 
 	// 构建基础查询
 	query := tx.Unscoped().Model(&User{})
 
-	// 构建搜索条件
-	likeCondition := "username LIKE ? OR email LIKE ? OR display_name LIKE ?"
+	// Apply keyword search if provided
+	if keyword != "" {
+		// 构建搜索条件
+		likeCondition := "username LIKE ? OR email LIKE ? OR display_name LIKE ?"
 
-	// 尝试将关键字转换为整数ID
-	keywordInt, err := strconv.Atoi(keyword)
-	if err == nil {
-		// 如果是数字，同时搜索ID和其他字段
-		likeCondition = "id = ? OR " + likeCondition
-		if group != "" {
-			query = query.Where("("+likeCondition+") AND "+commonGroupCol+" = ?",
-				keywordInt, "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%", group)
-		} else {
+		// 尝试将关键字转换为整数ID
+		keywordInt, parseErr := strconv.Atoi(keyword)
+		if parseErr == nil {
+			// 如果是数字，同时搜索ID和其他字段
+			likeCondition = "id = ? OR " + likeCondition
 			query = query.Where(likeCondition,
 				keywordInt, "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
-		}
-	} else {
-		// 非数字关键字，只搜索字符串字段
-		if group != "" {
-			query = query.Where("("+likeCondition+") AND "+commonGroupCol+" = ?",
-				"%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%", group)
 		} else {
+			// 非数字关键字，只搜索字符串字段
 			query = query.Where(likeCondition,
 				"%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
+		}
+	}
+
+	// Apply group filter
+	if group != "" {
+		query = query.Where(commonGroupCol+" = ?", group)
+	}
+
+	// Apply ID range filters
+	if idMin > 0 {
+		query = query.Where("id >= ?", idMin)
+	}
+	if idMax > 0 {
+		query = query.Where("id <= ?", idMax)
+	}
+
+	// Apply request count filter
+	if requestCount >= 0 && requestCountMode != "" {
+		if requestCountMode == "less_than" {
+			query = query.Where("request_count < ?", requestCount)
+		} else if requestCountMode == "more_than" {
+			query = query.Where("request_count > ?", requestCount)
 		}
 	}
 
@@ -284,6 +299,54 @@ func SearchUsers(keyword string, group string, startIdx int, num int) ([]*User, 
 	}
 
 	return users, total, nil
+}
+
+// BatchUpdateUserStatus updates the status of multiple users in batch
+func BatchUpdateUserStatus(ids []int, status int, operatorRole int) (int64, error) {
+	if len(ids) == 0 {
+		return 0, nil
+	}
+
+	// Start transaction
+	tx := DB.Begin()
+	if tx.Error != nil {
+		return 0, tx.Error
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// Build the query to exclude users with higher or equal role
+	// and exclude root users from being disabled
+	query := tx.Model(&User{}).Where("id IN ?", ids)
+
+	// Only allow updating users with lower role than the operator
+	// Root users (role 100) can update anyone except other root users
+	// Admin users (role 10) can only update common users (role 1)
+	if operatorRole != 100 { // Not root user
+		query = query.Where("role < ?", operatorRole)
+	} else {
+		// Root users cannot disable other root users
+		if status == 2 { // Disabled status
+			query = query.Where("role < ?", 100)
+		}
+	}
+
+	// Perform the batch update
+	result := query.Update("status", status)
+	if result.Error != nil {
+		tx.Rollback()
+		return 0, result.Error
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		return 0, err
+	}
+
+	return result.RowsAffected, nil
 }
 
 func GetUserById(id int, selectAll bool) (*User, error) {

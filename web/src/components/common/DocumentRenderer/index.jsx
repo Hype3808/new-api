@@ -19,7 +19,7 @@ For commercial licensing, please contact support@quantumnous.com
 
 import React, { useEffect, useState } from 'react';
 import { API, showError } from '../../../helpers';
-import { Empty, Card, Spin, Typography } from '@douyinfe/semi-ui';
+import { Empty, Spin, Typography } from '@douyinfe/semi-ui';
 const { Title } = Typography;
 import {
   IllustrationConstruction,
@@ -173,51 +173,28 @@ const DocumentRenderer = ({ apiEndpoint, title, cacheKey, emptyMessage }) => {
     );
   }
 
-  // 如果是 URL，显示链接卡片
+  // 如果是 URL，使用 iframe 嵌入
   if (isUrl(content)) {
     return (
-      <div className='flex justify-center items-center min-h-screen bg-gray-50 p-4'>
-        <Card className='max-w-md w-full'>
-          <div className='text-center'>
-            <Title heading={4} className='mb-4'>{title}</Title>
-            <p className='text-gray-600 mb-4'>
-              {t('管理员设置了外部链接，点击下方按钮访问')}
-            </p>
-            <a
-              href={content.trim()}
-              target='_blank'
-              rel='noopener noreferrer'
-              title={content.trim()}
-              aria-label={`${t('访问' + title)}: ${content.trim()}`}
-              className='inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors'
-            >
-              {t('访问' + title)}
-            </a>
-          </div>
-        </Card>
+      <div className='mt-[60px] px-2'>
+        <iframe
+          src={content.trim()}
+          style={{ width: '100%', height: '100vh', border: 'none' }}
+          title={title}
+        />
       </div>
     );
   }
 
   // 如果是 HTML 内容，直接渲染
   if (isHtmlContent(content)) {
-    const { content: htmlContent, styles } = sanitizeHtml(content);
-    
-    // 设置样式（如果有的话）
-    useEffect(() => {
-      if (styles && styles !== htmlStyles) {
-        setHtmlStyles(styles);
-      }
-    }, [content, styles, htmlStyles]);
-    
     return (
-      <div className='min-h-screen bg-gray-50'>
+      <div className='min-h-screen bg-gray-50 pt-16'>
         <div className='max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8'>
           <div className='bg-white rounded-lg shadow-sm p-8'>
-            <Title heading={2} className='text-center mb-8'>{title}</Title>
             <div 
-              className='prose prose-lg max-w-none'
-              dangerouslySetInnerHTML={{ __html: htmlContent }}
+              className='prose prose-lg max-w-none mx-auto'
+              dangerouslySetInnerHTML={{ __html: processedHtmlContent || content }}
             />
           </div>
         </div>

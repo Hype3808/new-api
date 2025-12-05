@@ -101,11 +101,14 @@ func RecordErrorLog(c *gin.Context, userId int, channelId int, modelName string,
 	logger.LogInfo(c, fmt.Sprintf("record error log: userId=%d, channelId=%d, modelName=%s, tokenName=%s, content=%s", userId, channelId, modelName, tokenName, content))
 	username := c.GetString("username")
 	otherStr := common.MapToJsonStr(other)
-	// 判断是否需要记录 IP
-	needRecordIp := false
-	if settingMap, err := GetUserSetting(userId, false); err == nil {
-		if settingMap.RecordIpLog {
-			needRecordIp = true
+	// 判断是否需要记录 IP - 系统设置优先
+	needRecordIp := common.LogIpEnabled
+	if !needRecordIp {
+		// 如果系统未开启，检查用户个人设置
+		if settingMap, err := GetUserSetting(userId, false); err == nil {
+			if settingMap.RecordIpLog {
+				needRecordIp = true
+			}
 		}
 	}
 	log := &Log{
@@ -160,11 +163,14 @@ func RecordConsumeLog(c *gin.Context, userId int, params RecordConsumeLogParams)
 	logger.LogInfo(c, fmt.Sprintf("record consume log: userId=%d, params=%s", userId, common.GetJsonString(params)))
 	username := c.GetString("username")
 	otherStr := common.MapToJsonStr(params.Other)
-	// 判断是否需要记录 IP
-	needRecordIp := false
-	if settingMap, err := GetUserSetting(userId, false); err == nil {
-		if settingMap.RecordIpLog {
-			needRecordIp = true
+	// 判断是否需要记录 IP - 系统设置优先
+	needRecordIp := common.LogIpEnabled
+	if !needRecordIp {
+		// 如果系统未开启，检查用户个人设置
+		if settingMap, err := GetUserSetting(userId, false); err == nil {
+			if settingMap.RecordIpLog {
+				needRecordIp = true
+			}
 		}
 	}
 	log := &Log{

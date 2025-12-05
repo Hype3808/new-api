@@ -36,6 +36,12 @@ export const useUsersData = () => {
   const [groupOptions, setGroupOptions] = useState([]);
   const [userCount, setUserCount] = useState(0);
 
+  // Batch operation states
+  const [enableBatchOperation, setEnableBatchOperation] = useState(
+    localStorage.getItem('enable-batch-operation-users') === 'true',
+  );
+  const [selectedUsers, setSelectedUsers] = useState([]);
+
   // Modal states
   const [showAddUser, setShowAddUser] = useState(false);
   const [showEditUser, setShowEditUser] = useState(false);
@@ -47,6 +53,10 @@ export const useUsersData = () => {
   const formInitValues = {
     searchKeyword: '',
     searchGroup: '',
+    idMin: '',
+    idMax: '',
+    requestCount: '',
+    requestCountMode: '',
   };
 
   // Form API reference
@@ -58,6 +68,10 @@ export const useUsersData = () => {
     return {
       searchKeyword: formValues.searchKeyword || '',
       searchGroup: formValues.searchGroup || '',
+      idMin: formValues.idMin || '',
+      idMax: formValues.idMax || '',
+      requestCount: formValues.requestCount || '',
+      requestCountMode: formValues.requestCountMode || '',
     };
   };
 
@@ -85,29 +99,52 @@ export const useUsersData = () => {
     setLoading(false);
   };
 
-  // Search users with keyword and group
+  // Search users with keyword, group, and filters
   const searchUsers = async (
     startIdx,
     pageSize,
     searchKeyword = null,
     searchGroup = null,
+    idMin = null,
+    idMax = null,
+    requestCount = null,
+    requestCountMode = null,
   ) => {
     // If no parameters passed, get values from form
-    if (searchKeyword === null || searchGroup === null) {
+    if (searchKeyword === null) {
       const formValues = getFormValues();
       searchKeyword = formValues.searchKeyword;
       searchGroup = formValues.searchGroup;
+      idMin = formValues.idMin;
+      idMax = formValues.idMax;
+      requestCount = formValues.requestCount;
+      requestCountMode = formValues.requestCountMode;
     }
 
-    if (searchKeyword === '' && searchGroup === '') {
-      // If keyword is blank, load files instead
+    const hasFilters =
+      searchKeyword !== '' ||
+      searchGroup !== '' ||
+      idMin !== '' ||
+      idMax !== '' ||
+      (requestCount !== '' && requestCountMode !== '');
+
+    if (!hasFilters) {
+      // If no filters, load all users
       await loadUsers(startIdx, pageSize);
       return;
     }
+
     setSearching(true);
-    const res = await API.get(
-      `/api/user/search?keyword=${searchKeyword}&group=${searchGroup}&p=${startIdx}&page_size=${pageSize}`,
-    );
+    let url = `/api/user/search?p=${startIdx}&page_size=${pageSize}`;
+    if (searchKeyword) url += `&keyword=${encodeURIComponent(searchKeyword)}`;
+    if (searchGroup) url += `&group=${encodeURIComponent(searchGroup)}`;
+    if (idMin) url += `&id_min=${idMin}`;
+    if (idMax) url += `&id_max=${idMax}`;
+    if (requestCount && requestCountMode) {
+      url += `&request_count=${requestCount}&request_count_mode=${requestCountMode}`;
+    }
+
+    const res = await API.get(url);
     const { success, message, data } = res.data;
     if (success) {
       const newPageData = data.items;
@@ -118,6 +155,46 @@ export const useUsersData = () => {
       showError(message);
     }
     setSearching(false);
+  };
+
+  // Batch enable users
+  const batchEnableUsers = async () => {
+    if (selectedUsers.length === 0) {
+      showError(t('请先选择要启用的用户！'));
+      return;
+    }
+    setLoading(true);
+    const ids = selectedUsers.map((user) => user.id);
+    const res = await API.post('/api/user/batch', { ids, action: 'enable' });
+    const { success, message, data } = res.data;
+    if (success) {
+      showSuccess(t('已启用 ${count} 个用户！').replace('${count}', data));
+      await refresh();
+      setSelectedUsers([]);
+    } else {
+      showError(message);
+    }
+    setLoading(false);
+  };
+
+  // Batch disable users
+  const batchDisableUsers = async () => {
+    if (selectedUsers.length === 0) {
+      showError(t('请先选择要禁用的用户！'));
+      return;
+    }
+    setLoading(true);
+    const ids = selectedUsers.map((user) => user.id);
+    const res = await API.post('/api/user/batch', { ids, action: 'disable' });
+    const { success, message, data } = res.data;
+    if (success) {
+      showSuccess(t('已禁用 ${count} 个用户！').replace('${count}', data));
+      await refresh();
+      setSelectedUsers([]);
+    } else {
+      showError(message);
+    }
+    setLoading(false);
   };
 
   // Manage user operations (promote, demote, enable, disable, delete)
@@ -191,11 +268,34 @@ export const useUsersData = () => {
   // Handle page change
   const handlePageChange = (page) => {
     setActivePage(page);
-    const { searchKeyword, searchGroup } = getFormValues();
-    if (searchKeyword === '' && searchGroup === '') {
+    const {
+      searchKeyword,
+      searchGroup,
+      idMin,
+      idMax,
+      requestCount,
+      requestCountMode,
+    } = getFormValues();
+    const hasFilters =
+      searchKeyword !== '' ||
+      searchGroup !== '' ||
+      idMin !== '' ||
+      idMax !== '' ||
+      (requestCount !== '' && requestCountMode !== '');
+
+    if (!hasFilters) {
       loadUsers(page, pageSize).then();
     } else {
-      searchUsers(page, pageSize, searchKeyword, searchGroup).then();
+      searchUsers(
+        page,
+        pageSize,
+        searchKeyword,
+        searchGroup,
+        idMin,
+        idMax,
+        requestCount,
+        requestCountMode,
+      ).then();
     }
   };
 
@@ -226,11 +326,34 @@ export const useUsersData = () => {
 
   // Refresh data
   const refresh = async (page = activePage) => {
-    const { searchKeyword, searchGroup } = getFormValues();
-    if (searchKeyword === '' && searchGroup === '') {
+    const {
+      searchKeyword,
+      searchGroup,
+      idMin,
+      idMax,
+      requestCount,
+      requestCountMode,
+    } = getFormValues();
+    const hasFilters =
+      searchKeyword !== '' ||
+      searchGroup !== '' ||
+      idMin !== '' ||
+      idMax !== '' ||
+      (requestCount !== '' && requestCountMode !== '');
+
+    if (!hasFilters) {
       await loadUsers(page, pageSize);
     } else {
-      await searchUsers(page, pageSize, searchKeyword, searchGroup);
+      await searchUsers(
+        page,
+        pageSize,
+        searchKeyword,
+        searchGroup,
+        idMin,
+        idMax,
+        requestCount,
+        requestCountMode,
+      );
     }
   };
 
@@ -284,6 +407,12 @@ export const useUsersData = () => {
     searching,
     groupOptions,
 
+    // Batch operation state
+    enableBatchOperation,
+    setEnableBatchOperation,
+    selectedUsers,
+    setSelectedUsers,
+
     // Modal state
     showAddUser,
     showEditUser,
@@ -307,6 +436,8 @@ export const useUsersData = () => {
     manageUser,
     resetUserPasskey,
     resetUserTwoFA,
+    batchEnableUsers,
+    batchDisableUsers,
     handlePageChange,
     handlePageSizeChange,
     handleRow,
