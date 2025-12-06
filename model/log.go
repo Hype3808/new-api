@@ -19,9 +19,9 @@ import (
 
 type Log struct {
 	Id               int    `json:"id" gorm:"index:idx_created_at_id,priority:1"`
-	UserId           int    `json:"user_id" gorm:"index"`
-	CreatedAt        int64  `json:"created_at" gorm:"bigint;index:idx_created_at_id,priority:2;index:idx_created_at_type"`
-	Type             int    `json:"type" gorm:"index:idx_created_at_type"`
+	UserId           int    `json:"user_id" gorm:"index;index:idx_user_created,priority:1"`
+	CreatedAt        int64  `json:"created_at" gorm:"bigint;index:idx_created_at_id,priority:2;index:idx_created_at_type;index:idx_user_created,priority:2;index:idx_type_created,priority:2"`
+	Type             int    `json:"type" gorm:"index:idx_created_at_type;index:idx_type_created,priority:1"`
 	Content          string `json:"content"`
 	Username         string `json:"username" gorm:"index;index:index_username_model_name,priority:2;default:''"`
 	TokenName        string `json:"token_name" gorm:"index;default:''"`
@@ -327,47 +327,63 @@ type Stat struct {
 }
 
 func SumUsedQuota(logType int, startTimestamp int64, endTimestamp int64, modelName string, username string, tokenName string, channel int, group string) (stat Stat) {
-	tx := LOG_DB.Table("logs").Select("sum(quota) quota")
-
-	// 为rpm和tpm创建单独的查询
-	rpmTpmQuery := LOG_DB.Table("logs").Select("count(*) rpm, sum(prompt_tokens) + sum(completion_tokens) tpm")
+	// Query for quota (potentially wide time range)
+	txQuota := LOG_DB.Table("logs").Select("COALESCE(sum(quota), 0) as quota").Where("type = ?", LogTypeConsume)
 
 	if username != "" {
-		tx = tx.Where("username = ?", username)
-		rpmTpmQuery = rpmTpmQuery.Where("username = ?", username)
+		txQuota = txQuota.Where("username = ?", username)
 	}
 	if tokenName != "" {
-		tx = tx.Where("token_name = ?", tokenName)
-		rpmTpmQuery = rpmTpmQuery.Where("token_name = ?", tokenName)
+		txQuota = txQuota.Where("token_name = ?", tokenName)
 	}
 	if startTimestamp != 0 {
-		tx = tx.Where("created_at >= ?", startTimestamp)
+		txQuota = txQuota.Where("created_at >= ?", startTimestamp)
 	}
 	if endTimestamp != 0 {
-		tx = tx.Where("created_at <= ?", endTimestamp)
+		txQuota = txQuota.Where("created_at <= ?", endTimestamp)
 	}
 	if modelName != "" {
-		tx = tx.Where("model_name like ?", modelName)
-		rpmTpmQuery = rpmTpmQuery.Where("model_name like ?", modelName)
+		txQuota = txQuota.Where("model_name like ?", modelName)
 	}
 	if channel != 0 {
-		tx = tx.Where("channel_id = ?", channel)
-		rpmTpmQuery = rpmTpmQuery.Where("channel_id = ?", channel)
+		txQuota = txQuota.Where("channel_id = ?", channel)
 	}
 	if group != "" {
-		tx = tx.Where(logGroupCol+" = ?", group)
-		rpmTpmQuery = rpmTpmQuery.Where(logGroupCol+" = ?", group)
+		txQuota = txQuota.Where(logGroupCol+" = ?", group)
 	}
 
-	tx = tx.Where("type = ?", LogTypeConsume)
-	rpmTpmQuery = rpmTpmQuery.Where("type = ?", LogTypeConsume)
+	// Query for rpm/tpm (last 60 seconds only for rate metrics)
+	rpmStart := time.Now().Add(-60 * time.Second).Unix()
+	txRate := LOG_DB.Table("logs").Select("COALESCE(count(*), 0) as rpm, COALESCE(sum(prompt_tokens) + sum(completion_tokens), 0) as tpm").Where("type = ? AND created_at >= ?", LogTypeConsume, rpmStart)
 
-	// 只统计最近60秒的rpm和tpm
-	rpmTpmQuery = rpmTpmQuery.Where("created_at >= ?", time.Now().Add(-60*time.Second).Unix())
+	if username != "" {
+		txRate = txRate.Where("username = ?", username)
+	}
+	if tokenName != "" {
+		txRate = txRate.Where("token_name = ?", tokenName)
+	}
+	if modelName != "" {
+		txRate = txRate.Where("model_name like ?", modelName)
+	}
+	if channel != 0 {
+		txRate = txRate.Where("channel_id = ?", channel)
+	}
+	if group != "" {
+		txRate = txRate.Where(logGroupCol+" = ?", group)
+	}
 
-	// 执行查询
-	tx.Scan(&stat)
-	rpmTpmQuery.Scan(&stat)
+	// Execute both queries
+	var quotaResult struct{ Quota int }
+	var rateResult struct {
+		Rpm int
+		Tpm int
+	}
+	txQuota.Scan(&quotaResult)
+	txRate.Scan(&rateResult)
+
+	stat.Quota = quotaResult.Quota
+	stat.Rpm = rateResult.Rpm
+	stat.Tpm = rateResult.Tpm
 
 	return stat
 }

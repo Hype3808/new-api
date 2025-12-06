@@ -43,15 +43,15 @@ func InitTokenEncoders() {
 }
 
 func getTokenEncoder(model string) tokenizer.Codec {
-	// First, try to get the encoder from cache with read lock
+	// Fast path: try to get the encoder from cache with read lock
 	tokenEncoderMutex.RLock()
-	if encoder, exists := tokenEncoderMap[model]; exists {
-		tokenEncoderMutex.RUnlock()
+	encoder, exists := tokenEncoderMap[model]
+	tokenEncoderMutex.RUnlock()
+	if exists {
 		return encoder
 	}
-	tokenEncoderMutex.RUnlock()
 
-	// If not in cache, create new encoder with write lock
+	// Slow path: create new encoder with write lock
 	tokenEncoderMutex.Lock()
 	defer tokenEncoderMutex.Unlock()
 
@@ -60,16 +60,43 @@ func getTokenEncoder(model string) tokenizer.Codec {
 		return encoder
 	}
 
+	// Normalize common model prefixes to reduce encoder variants
+	// gpt-4o-2024-11-20 -> gpt-4o, gpt-3.5-turbo-0613 -> gpt-3.5-turbo
+	normalizedModel := model
+	if strings.HasPrefix(model, "gpt-4o-") {
+		normalizedModel = "gpt-4o"
+	} else if strings.HasPrefix(model, "gpt-4-") {
+		normalizedModel = "gpt-4"
+	} else if strings.HasPrefix(model, "gpt-3.5-turbo-") {
+		normalizedModel = "gpt-3.5-turbo"
+	} else if strings.HasPrefix(model, "gpt-4.1-") || strings.HasPrefix(model, "gpt-5-") {
+		normalizedModel = "gpt-4o" // Use same encoder family
+	}
+
+	// Check if normalized model already has encoder
+	if normalizedModel != model {
+		if encoder, exists := tokenEncoderMap[normalizedModel]; exists {
+			tokenEncoderMap[model] = encoder // Cache for original model name too
+			return encoder
+		}
+	}
+
 	// Create new encoder
-	modelCodec, err := tokenizer.ForModel(tokenizer.Model(model))
+	modelCodec, err := tokenizer.ForModel(tokenizer.Model(normalizedModel))
 	if err != nil {
 		// Cache the default encoder for this model to avoid repeated failures
 		tokenEncoderMap[model] = defaultTokenEncoder
+		if normalizedModel != model {
+			tokenEncoderMap[normalizedModel] = defaultTokenEncoder
+		}
 		return defaultTokenEncoder
 	}
 
 	// Cache the new encoder
-	tokenEncoderMap[model] = modelCodec
+	tokenEncoderMap[normalizedModel] = modelCodec
+	if normalizedModel != model {
+		tokenEncoderMap[model] = modelCodec
+	}
 	return modelCodec
 }
 
@@ -636,6 +663,17 @@ func CountTextToken(text string, model string) int {
 	if text == "" {
 		return 0
 	}
+	
+	// Fast estimation for very long texts to avoid tokenizer overhead on high rpm
+	// Rough heuristic: 1 token ≈ 4 chars for English, 1.5-2 chars for dense text
+	// Only use this shortcut for texts > 10k chars to save CPU cycles
+	if len(text) > 10000 {
+		// Conservative estimate: 3 chars per token (slightly overestimates)
+		estimated := len(text) / 3
+		// Add 10% safety margin
+		return int(float64(estimated) * 1.1)
+	}
+	
 	tokenEncoder := getTokenEncoder(model)
 	return getTokenNum(tokenEncoder, text)
 }
