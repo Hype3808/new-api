@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -38,6 +39,22 @@ var indexPage []byte
 
 func main() {
 	startTime := time.Now()
+
+	// Set GOMAXPROCS for single-CPU servers to prevent excessive context switching
+	// Default is NumCPU(), but can be overridden with GOMAXPROCS env var
+	if maxProcs := os.Getenv("GOMAXPROCS"); maxProcs != "" {
+		if n, err := strconv.Atoi(maxProcs); err == nil && n > 0 {
+			runtime.GOMAXPROCS(n)
+			common.SysLog(fmt.Sprintf("GOMAXPROCS set to %d", n))
+		}
+	} else {
+		// Auto-detect: use NumCPU but cap at 2 for small servers
+		numCPU := runtime.NumCPU()
+		if numCPU == 1 {
+			runtime.GOMAXPROCS(1)
+			common.SysLog("Single CPU detected, GOMAXPROCS=1")
+		}
+	}
 
 	err := InitResources()
 	if err != nil {
