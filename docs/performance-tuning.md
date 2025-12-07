@@ -62,6 +62,24 @@ CREATE INDEX idx_user_created ON logs (user_id, created_at);
 
 **Note:** Use `CONCURRENTLY` in PostgreSQL to avoid blocking writes during index creation.
 
+### 2a. Initial PostgreSQL setup to avoid slow queries
+
+When provisioning a fresh PostgreSQL instance, run these once to keep early queries efficient:
+
+```sql
+-- Enable statement stats (plan-friendly)
+CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+
+-- Create performance indexes immediately (same as migration scripts)
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_type_created ON logs (type, created_at);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_user_created ON logs (user_id, created_at);
+
+-- Gather planner statistics right after migrations
+ANALYZE;
+```
+
+If using Docker, set `shared_preload_libraries=pg_stat_statements` in `command:` args so the extension loads on start.
+
 ### 3. Optimized Stats Query (`SumUsedQuota`)
 
 **File: `model/log.go`**
