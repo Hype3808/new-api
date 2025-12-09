@@ -83,6 +83,25 @@ export function updateAPI() {
 API.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Check for session invalidation
+    const isSessionInvalid = 
+      error.response?.status === 401 ||
+      error.response?.data?.message === '会话已失效，请重新登录' ||
+      error.response?.data?.message?.includes('未登录') ||
+      error.response?.data?.message?.includes('无权进行此操作');
+
+    if (isSessionInvalid && localStorage.getItem('user')) {
+      // Clear localStorage and redirect to login
+      localStorage.removeItem('user');
+      console.log('Session invalidated, clearing localStorage and redirecting to login');
+      
+      // Only redirect if we're not already on the login page
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
+      return Promise.reject(error);
+    }
+
     // 如果请求配置中显式要求跳过全局错误处理，则不弹出默认错误提示
     if (error.config && error.config.skipErrorHandler) {
       return Promise.reject(error);

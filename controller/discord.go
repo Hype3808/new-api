@@ -70,19 +70,19 @@ func getDiscordUserInfoByCode(code string) (*DiscordAuthResult, error) {
 		return nil, errors.New("无法连接至 Discord 服务器，请稍后重试！")
 	}
 	defer res.Body.Close()
-	
+
 	// Read response body for debugging
 	bodyBytes, err := io.ReadAll(res.Body)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Log the response for debugging
 	if res.StatusCode != http.StatusOK {
 		common.SysError(fmt.Sprintf("Discord Token API returned status %d: %s", res.StatusCode, string(bodyBytes)))
 		return nil, errors.New("Discord 获取 Token 失败，请检查设置！")
 	}
-	
+
 	var discordResponse DiscordResponse
 	err = json.Unmarshal(bodyBytes, &discordResponse)
 	if err != nil {
@@ -155,11 +155,11 @@ func DiscordOAuth(c *gin.Context) {
 		})
 		return
 	}
-	
+
 	// Clear the oauth_state immediately after validation to prevent reuse
 	session.Delete("oauth_state")
 	session.Save()
-	
+
 	username := session.Get("username")
 	if username != nil {
 		DiscordBind(c)
@@ -195,7 +195,7 @@ func DiscordOAuth(c *gin.Context) {
 			})
 			return
 		}
-		
+
 		// Double check that user was actually found
 		if user.Id == 0 {
 			common.SysError(fmt.Sprintf("Discord OAuth: user.Id is 0 after FillUserByDiscordId for UID %s", discordUser.UID))

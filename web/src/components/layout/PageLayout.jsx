@@ -76,11 +76,26 @@ const PageLayout = () => {
     }
   }, [isMobile, drawerOpen, collapsed, setCollapsed]);
 
-  const loadUser = () => {
+  const loadUser = async () => {
     let user = localStorage.getItem('user');
     if (user) {
-      let data = JSON.parse(user);
-      userDispatch({ type: 'login', payload: data });
+      try {
+        // Validate session with server before loading user data
+        const res = await API.get('/api/user/self', { skipErrorHandler: true });
+        if (res.data.success) {
+          // Session is valid, update with fresh data from server
+          let data = res.data.data;
+          localStorage.setItem('user', JSON.stringify(data));
+          userDispatch({ type: 'login', payload: data });
+        } else {
+          // Session invalid, clear localStorage
+          localStorage.removeItem('user');
+        }
+      } catch (error) {
+        // Session validation failed (401 or network error)
+        console.log('Session validation failed, clearing localStorage');
+        localStorage.removeItem('user');
+      }
     }
   };
 
