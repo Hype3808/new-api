@@ -69,6 +69,35 @@ func authHelper(c *gin.Context, minRole int) {
 			c.Abort()
 			return
 		}
+	} else {
+		// Validate session user still exists in database
+		if id != nil {
+			userId, ok := id.(int)
+			if ok {
+				user := &model.User{Id: userId}
+				err := user.FillUserById()
+				if err != nil {
+					// User no longer exists in database, clear session
+					session.Clear()
+					_ = session.Save()
+					c.JSON(http.StatusUnauthorized, gin.H{
+						"success": false,
+						"message": "会话已失效，请重新登录",
+					})
+					c.Abort()
+					return
+				}
+				// Update session data with current database values
+				username = user.Username
+				role = user.Role
+				status = user.Status
+				session.Set("username", user.Username)
+				session.Set("role", user.Role)
+				session.Set("status", user.Status)
+				session.Set("group", user.Group)
+				_ = session.Save()
+			}
+		}
 	}
 	// get header New-Api-User
 	apiUserIdStr := c.Request.Header.Get("New-Api-User")
