@@ -81,20 +81,32 @@ const PageLayout = () => {
     if (user) {
       try {
         // Validate session with server before loading user data
-        const res = await API.get('/api/user/self', { skipErrorHandler: true });
+        // Add cache busting to prevent Safari/browser caching
+        const res = await API.get('/api/user/self', { 
+          skipErrorHandler: true,
+          params: { _t: Date.now() },
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        });
         if (res.data.success) {
           // Session is valid, update with fresh data from server
           let data = res.data.data;
           localStorage.setItem('user', JSON.stringify(data));
           userDispatch({ type: 'login', payload: data });
+          console.log('Session validated successfully');
         } else {
           // Session invalid, clear localStorage
+          console.log('Session invalid (success=false), clearing localStorage');
           localStorage.removeItem('user');
+          userDispatch({ type: 'logout' });
         }
       } catch (error) {
         // Session validation failed (401 or network error)
-        console.log('Session validation failed, clearing localStorage');
+        console.log('Session validation failed with error:', error.response?.status, error.response?.data?.message);
         localStorage.removeItem('user');
+        userDispatch({ type: 'logout' });
       }
     }
   };
