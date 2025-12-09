@@ -155,6 +155,11 @@ func DiscordOAuth(c *gin.Context) {
 		})
 		return
 	}
+	
+	// Clear the oauth_state immediately after validation to prevent reuse
+	session.Delete("oauth_state")
+	session.Save()
+	
 	username := session.Get("username")
 	if username != nil {
 		DiscordBind(c)
