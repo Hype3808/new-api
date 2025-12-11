@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useContext, useEffect, useState, useRef } from 'react';
 import {
   Button,
   Col,
@@ -33,9 +33,11 @@ import {
   showSuccess,
   showWarning,
 } from '../../../helpers';
+import { StatusContext } from '../../../context/Status';
 
 export default function SettingsToken(props) {
   const { t } = useTranslation();
+  const [statusState, statusDispatch] = useContext(StatusContext);
   const [loading, setLoading] = useState(false);
   const [inputs, setInputs] = useState({
     'token_setting.require_group_selection': false,
@@ -68,6 +70,19 @@ export default function SettingsToken(props) {
             return showError(t('部分保存失败，请重试'));
         }
         showSuccess(t('保存成功'));
+
+        // Immediately sync StatusContext so dependent UIs (e.g., token modal) reflect the latest toggle without a full page reload
+        if (statusDispatch) {
+          statusDispatch({
+            type: 'set',
+            payload: {
+              ...statusState?.status,
+              token_setting_require_group_selection:
+                inputs['token_setting.require_group_selection'] === true,
+            },
+          });
+        }
+
         props.refresh();
       })
       .catch(() => {
@@ -104,8 +119,9 @@ export default function SettingsToken(props) {
                 <Form.Switch
                   field={'token_setting.require_group_selection'}
                   label={t('创建令牌时强制选择分组')}
-                  checkedText={t('是')}
-                  uncheckedText={t('否')}
+                  size='default'
+                  checkedText='｜'
+                  uncheckedText='〇'
                   onChange={(value) => {
                     setInputs((inputs) => ({
                       ...inputs,
