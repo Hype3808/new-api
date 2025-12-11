@@ -373,7 +373,13 @@ const EditTokenModal = (props) => {
                         renderOptionItem={renderGroupOption}
                         rules={
                           isGroupRequired
-                            ? [{ required: true, message: t('请选择令牌分组') }]
+                            ? [
+                                {
+                                  required: true,
+                                  type: 'string',
+                                  message: t('请选择令牌分组'),
+                                },
+                              ]
                             : []
                         }
                         showClear={!isGroupRequired}
