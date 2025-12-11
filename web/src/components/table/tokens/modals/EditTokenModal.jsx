@@ -63,6 +63,7 @@ const EditTokenModal = (props) => {
   const [models, setModels] = useState([]);
   const [groups, setGroups] = useState([]);
   const isEdit = props.editingToken.id !== undefined;
+  const isGroupRequired = statusState?.status?.token_setting_require_group_selection === true;
 
   const getInitValues = () => ({
     name: '',
@@ -361,11 +362,21 @@ const EditTokenModal = (props) => {
                     {groups.length > 0 ? (
                       <Form.Select
                         field='group'
-                        label={t('令牌分组')}
-                        placeholder={t('令牌分组，默认为用户的分组')}
+                        label={
+                          <>
+                            {t('令牌分组')}
+                            {isGroupRequired && <span style={{ color: 'var(--semi-color-danger)' }}> *</span>}
+                          </>
+                        }
+                        placeholder={isGroupRequired ? t('请选择令牌分组') : t('令牌分组，默认为用户的分组')}
                         optionList={groups}
                         renderOptionItem={renderGroupOption}
-                        showClear
+                        rules={
+                          isGroupRequired
+                            ? [{ required: true, message: t('请选择令牌分组') }]
+                            : []
+                        }
+                        showClear={!isGroupRequired}
                         style={{ width: '100%' }}
                       />
                     ) : (
