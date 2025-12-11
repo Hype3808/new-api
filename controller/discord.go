@@ -156,8 +156,16 @@ func DiscordOAuth(c *gin.Context) {
 		return
 	}
 
+	purpose := ""
+	if p := session.Get("oauth_purpose"); p != nil {
+		if str, ok := p.(string); ok {
+			purpose = str
+		}
+	}
+
 	// Clear the oauth_state immediately after validation to prevent reuse
 	session.Delete("oauth_state")
+	session.Delete("oauth_purpose")
 	session.Save()
 
 	username := session.Get("username")
@@ -181,10 +189,18 @@ func DiscordOAuth(c *gin.Context) {
 	discordUser := authResult.User
 	accessToken := authResult.AccessToken
 
-	user := model.User{
-		DiscordId: discordUser.UID,
+	user := model.User{DiscordId: discordUser.UID}
+	discordTaken := model.IsDiscordIdAlreadyTaken(user.DiscordId)
+
+	if discordTaken && purpose == "register" {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "该 Discord 账户已被绑定",
+		})
+		return
 	}
-	if model.IsDiscordIdAlreadyTaken(user.DiscordId) {
+
+	if discordTaken {
 		// Existing user login flow
 		err := user.FillUserByDiscordId()
 		if err != nil {
@@ -225,47 +241,54 @@ func DiscordOAuth(c *gin.Context) {
 		}
 	} else {
 		// New user registration flow
-		if common.RegisterEnabled {
-			// Verify Discord guild/role requirements for new user registration
-			verified, verifyMsg, verifyErr := service.VerifyDiscordUser(accessToken)
-			if verifyErr != nil {
-				common.SysError(fmt.Sprintf("Discord verification error for new user: %s", verifyErr.Error()))
-				c.JSON(http.StatusOK, gin.H{
-					"success": false,
-					"message": verifyMsg,
-				})
-				return
-			}
-			if !verified {
-				c.JSON(http.StatusOK, gin.H{
-					"success": false,
-					"message": verifyMsg,
-				})
-				return
-			}
-
-			if discordUser.ID != "" {
-				user.Username = discordUser.ID
-			} else {
-				user.Username = "discord_" + strconv.Itoa(model.GetMaxUserId()+1)
-			}
-			if discordUser.Name != "" {
-				user.DisplayName = discordUser.Name
-			} else {
-				user.DisplayName = "Discord User"
-			}
-			err := user.Insert(0)
-			if err != nil {
-				c.JSON(http.StatusOK, gin.H{
-					"success": false,
-					"message": err.Error(),
-				})
-				return
-			}
-		} else {
+		if purpose != "register" {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "该 Discord 账户未注册，请先注册",
+			})
+			return
+		}
+		if !common.RegisterEnabled {
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,
 				"message": "管理员关闭了新用户注册",
+			})
+			return
+		}
+
+		// Verify Discord guild/role requirements for new user registration
+		verified, verifyMsg, verifyErr := service.VerifyDiscordUser(accessToken)
+		if verifyErr != nil {
+			common.SysError(fmt.Sprintf("Discord verification error for new user: %s", verifyErr.Error()))
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": verifyMsg,
+			})
+			return
+		}
+		if !verified {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": verifyMsg,
+			})
+			return
+		}
+
+		if discordUser.ID != "" {
+			user.Username = discordUser.ID
+		} else {
+			user.Username = "discord_" + strconv.Itoa(model.GetMaxUserId()+1)
+		}
+		if discordUser.Name != "" {
+			user.DisplayName = discordUser.Name
+		} else {
+			user.DisplayName = "Discord User"
+		}
+		err := user.Insert(0)
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": err.Error(),
 			})
 			return
 		}
@@ -296,25 +319,46 @@ func DiscordBind(c *gin.Context) {
 		return
 	}
 	discordUser := authResult.User
-	user := model.User{
-		DiscordId: discordUser.UID,
-	}
-	if model.IsDiscordIdAlreadyTaken(user.DiscordId) {
-		c.JSON(http.StatusOK, gin.H{
+	discordId := discordUser.UID
+
+	session := sessions.Default(c)
+	id := session.Get("id")
+	if id == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
 			"success": false,
-			"message": "该 Discord 账户已被绑定",
+			"message": "登录状态已失效，请重新登录后重试",
 		})
 		return
 	}
-	session := sessions.Default(c)
-	id := session.Get("id")
-	user.Id = id.(int)
+
+	user := model.User{Id: id.(int)}
 	err = user.FillUserById()
 	if err != nil {
 		common.ApiError(c, err)
 		return
 	}
-	user.DiscordId = discordUser.UID
+
+	if model.IsDiscordIdAlreadyTaken(discordId) {
+		existing := model.User{DiscordId: discordId}
+		if err := existing.FillUserByDiscordId(); err != nil {
+			common.ApiError(c, err)
+			return
+		}
+		if existing.Id != user.Id {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "该 Discord 账户已被绑定",
+			})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "该 Discord 账户已绑定当前用户",
+		})
+		return
+	}
+
+	user.DiscordId = discordId
 	err = user.Update(false)
 	if err != nil {
 		common.ApiError(c, err)

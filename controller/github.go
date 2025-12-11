@@ -226,6 +226,21 @@ func GenerateOAuthCode(c *gin.Context) {
 	if affCode != "" {
 		session.Set("aff", affCode)
 	}
+	purpose := c.Query("purpose")
+	if purpose != "" {
+		switch purpose {
+		case "login", "register", "bind":
+			session.Set("oauth_purpose", purpose)
+		default:
+			c.JSON(http.StatusBadRequest, gin.H{
+				"success": false,
+				"message": "无效的授权用途",
+			})
+			return
+		}
+	} else {
+		session.Delete("oauth_purpose")
+	}
 	session.Set("oauth_state", state)
 	err := session.Save()
 	if err != nil {

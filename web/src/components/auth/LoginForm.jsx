@@ -309,8 +309,12 @@ const LoginForm = () => {
     }
     setDiscordLoading(true);
     try {
-      // Pass guildVerifyEnabled to request appropriate OAuth scopes
-      onDiscordOAuthClicked(status.discord_client_id, status.discord_guild_verify_enabled);
+      // Pass guildVerifyEnabled to request appropriate OAuth scopes and enforce login-only purpose
+      onDiscordOAuthClicked(
+        status.discord_client_id,
+        status.discord_guild_verify_enabled,
+        'login',
+      );
     } finally {
       // 由于重定向，这里不会执行到，但为了完整性添加
       setTimeout(() => setDiscordLoading(false), 3000);
