@@ -263,7 +263,14 @@ const EditTokenModal = (props) => {
         if (success) {
           successCount++;
         } else {
-          showError(t(message));
+          // Check if the error is about group selection requirement
+          if (message.includes('必须选择分组') || message.includes('选择令牌分组')) {
+            if (formApiRef.current) {
+              formApiRef.current.setError('group', t(message));
+            }
+          } else {
+            showError(t(message));
+          }
           break;
         }
       }
