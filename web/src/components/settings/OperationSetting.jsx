@@ -27,6 +27,7 @@ import SettingsLog from '../../pages/Setting/Operation/SettingsLog';
 import SettingsMonitoring from '../../pages/Setting/Operation/SettingsMonitoring';
 import SettingsCreditLimit from '../../pages/Setting/Operation/SettingsCreditLimit';
 import SettingsCheckin from '../../pages/Setting/Operation/SettingsCheckin';
+import SettingsToken from '../../pages/Setting/Operation/SettingsToken';
 import { API, showError, toBoolean } from '../../helpers';
 
 const OperationSetting = () => {
@@ -78,6 +79,9 @@ const OperationSetting = () => {
     'checkin.enabled': false,
     'checkin.reward_quota': 0,
     'checkin.quota_threshold': 0,
+
+    /* 令牌设置 */
+    'token_setting.require_group_selection': false,
   });
 
   let [loading, setLoading] = useState(false);
@@ -150,6 +154,10 @@ const OperationSetting = () => {
         {/* 签到设置 */}
         <Card style={{ marginTop: '10px' }}>
           <SettingsCheckin options={inputs} refresh={onRefresh} />
+        </Card>
+        {/* 令牌设置 */}
+        <Card style={{ marginTop: '10px' }}>
+          <SettingsToken options={inputs} refresh={onRefresh} />
         </Card>
       </Spin>
     </>

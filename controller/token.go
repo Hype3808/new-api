@@ -7,6 +7,7 @@ import (
 
 	"github.com/QuantumNous/new-api/common"
 	"github.com/QuantumNous/new-api/model"
+	"github.com/QuantumNous/new-api/setting/operation_setting"
 
 	"github.com/gin-gonic/gin"
 )
@@ -146,6 +147,14 @@ func AddToken(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
 			"message": "令牌名称过长",
+		})
+		return
+	}
+	// 检查是否强制要求选择分组
+	if operation_setting.IsGroupSelectionRequired() && strings.TrimSpace(token.Group) == "" {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "系统设置要求创建令牌时必须选择分组",
 		})
 		return
 	}
