@@ -234,18 +234,11 @@ export const processGroupsData = (data, userGroup) => {
 
 // 原来components中的utils.js
 
-export async function getOAuthState(purpose = '') {
+export async function getOAuthState() {
   let path = '/api/oauth/state';
-  const params = [];
-  if (purpose) {
-    params.push(`purpose=${purpose}`);
-  }
-  const affCode = localStorage.getItem('aff');
+  let affCode = localStorage.getItem('aff');
   if (affCode && affCode.length > 0) {
-    params.push(`aff=${affCode}`);
-  }
-  if (params.length > 0) {
-    path += `?${params.join('&')}`;
+    path += `?aff=${affCode}`;
   }
   const res = await API.get(path);
   const { success, message, data } = res.data;
@@ -257,8 +250,8 @@ export async function getOAuthState(purpose = '') {
   }
 }
 
-export async function onDiscordOAuthClicked(client_id, guildVerifyEnabled = false, purpose = '') {
-  const state = await getOAuthState(purpose);
+export async function onDiscordOAuthClicked(client_id, guildVerifyEnabled = false) {
+  const state = await getOAuthState();
   if (!state) return;
   const redirect_uri = `${window.location.origin}/oauth/discord`;
   const response_type = 'code';

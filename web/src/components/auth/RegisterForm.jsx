@@ -270,12 +270,8 @@ const RegisterForm = () => {
   const handleDiscordClick = () => {
     setDiscordLoading(true);
     try {
-      // Pass guildVerifyEnabled to request appropriate OAuth scopes and enforce register-only purpose
-      onDiscordOAuthClicked(
-        status.discord_client_id,
-        status.discord_guild_verify_enabled,
-        'register',
-      );
+      // Pass guildVerifyEnabled to request appropriate OAuth scopes
+      onDiscordOAuthClicked(status.discord_client_id, status.discord_guild_verify_enabled);
     } finally {
       setTimeout(() => setDiscordLoading(false), 3000);
     }
