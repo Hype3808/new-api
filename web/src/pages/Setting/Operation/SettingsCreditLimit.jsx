@@ -37,6 +37,7 @@ export default function SettingsCreditLimit(props) {
     QuotaForInviter: '',
     QuotaForInvitee: '',
     'quota_setting.enable_free_model_pre_consume': true,
+    'quota_setting.skip_billing_on_empty_response': false,
   });
   const refForm = useRef();
   const [inputsRow, setInputsRow] = useState(inputs);
@@ -177,6 +178,21 @@ export default function SettingsCreditLimit(props) {
                     setInputs({
                       ...inputs,
                       'quota_setting.enable_free_model_pre_consume': value,
+                    })
+                  }
+                />
+              </Col>
+            </Row>
+            <Row>
+              <Col>
+                <Form.Switch
+                  label={t('空回时不计费')}
+                  field={'quota_setting.skip_billing_on_empty_response'}
+                  extraText={t('当返回内容为空时跳过扣费，预扣额度将自动返还')}
+                  onChange={(value) =>
+                    setInputs({
+                      ...inputs,
+                      'quota_setting.skip_billing_on_empty_response': value,
                     })
                   }
                 />

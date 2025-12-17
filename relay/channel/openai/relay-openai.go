@@ -123,6 +123,7 @@ func OaiStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Re
 	var streamItems []string // store stream items
 	var lastStreamData string
 	var secondLastStreamData string // 存储倒数第二个stream data，用于音频模型
+	hasResponseContent := false
 
 	// 检查是否为音频模型
 	isAudioModel := strings.Contains(strings.ToLower(model), "audio")
@@ -178,9 +179,11 @@ func OaiStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Re
 	}
 
 	// 处理token计算
-	if err := processTokens(info.RelayMode, streamItems, &responseTextBuilder, &toolCount); err != nil {
+	if err := processTokens(info.RelayMode, streamItems, &responseTextBuilder, &toolCount, &hasResponseContent); err != nil {
 		logger.LogError(c, "error processing tokens: "+err.Error())
 	}
+
+	info.EmptyResponse = !hasResponseContent
 
 	if !containStreamUsage {
 		usage = service.ResponseText2Usage(c, responseTextBuilder.String(), info.UpstreamModelName, info.PromptTokens)
@@ -229,6 +232,17 @@ func OpenaiHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Respo
 	if oaiError := simpleResponse.GetOpenAIError(); oaiError != nil && oaiError.Type != "" {
 		return nil, types.WithOpenAIError(*oaiError, resp.StatusCode)
 	}
+
+	hasResponseContent := false
+	for _, choice := range simpleResponse.Choices {
+		content := strings.TrimSpace(choice.Message.StringContent())
+		reasoning := strings.TrimSpace(choice.Message.ReasoningContent + choice.Message.Reasoning)
+		if content != "" || reasoning != "" || len(choice.Message.ParseToolCalls()) > 0 {
+			hasResponseContent = true
+			break
+		}
+	}
+	info.EmptyResponse = !hasResponseContent
 
 	forceFormat := false
 	if info.ChannelSetting.ForceFormat {

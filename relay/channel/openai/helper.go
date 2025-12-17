@@ -92,19 +92,19 @@ func ProcessStreamResponse(streamResponse dto.ChatCompletionsStreamResponse, res
 	return nil
 }
 
-func processTokens(relayMode int, streamItems []string, responseTextBuilder *strings.Builder, toolCount *int) error {
+func processTokens(relayMode int, streamItems []string, responseTextBuilder *strings.Builder, toolCount *int, hasResponseContent *bool) error {
 	streamResp := "[" + strings.Join(streamItems, ",") + "]"
 
 	switch relayMode {
 	case relayconstant.RelayModeChatCompletions:
-		return processChatCompletions(streamResp, streamItems, responseTextBuilder, toolCount)
+		return processChatCompletions(streamResp, streamItems, responseTextBuilder, toolCount, hasResponseContent)
 	case relayconstant.RelayModeCompletions:
-		return processCompletions(streamResp, streamItems, responseTextBuilder)
+		return processCompletions(streamResp, streamItems, responseTextBuilder, hasResponseContent)
 	}
 	return nil
 }
 
-func processChatCompletions(streamResp string, streamItems []string, responseTextBuilder *strings.Builder, toolCount *int) error {
+func processChatCompletions(streamResp string, streamItems []string, responseTextBuilder *strings.Builder, toolCount *int, hasResponseContent *bool) error {
 	var streamResponses []dto.ChatCompletionsStreamResponse
 	if err := json.Unmarshal(common.StringToByteSlice(streamResp), &streamResponses); err != nil {
 		// 一次性解析失败，逐个解析
@@ -113,6 +113,15 @@ func processChatCompletions(streamResp string, streamItems []string, responseTex
 			var streamResponse dto.ChatCompletionsStreamResponse
 			if err := json.Unmarshal(common.StringToByteSlice(item), &streamResponse); err != nil {
 				return err
+			}
+			for _, choice := range streamResponse.Choices {
+				content := strings.TrimSpace(choice.Delta.GetContentString())
+				reasoning := strings.TrimSpace(choice.Delta.GetReasoningContent())
+				if content != "" || reasoning != "" || len(choice.Delta.ToolCalls) > 0 {
+					if hasResponseContent != nil {
+						*hasResponseContent = true
+					}
+				}
 			}
 			if err := ProcessStreamResponse(streamResponse, responseTextBuilder, toolCount); err != nil {
 				common.SysLog("error processing stream response: " + err.Error())
@@ -124,6 +133,13 @@ func processChatCompletions(streamResp string, streamItems []string, responseTex
 	// 批量处理所有响应
 	for _, streamResponse := range streamResponses {
 		for _, choice := range streamResponse.Choices {
+			content := strings.TrimSpace(choice.Delta.GetContentString())
+			reasoning := strings.TrimSpace(choice.Delta.GetReasoningContent())
+			if content != "" || reasoning != "" || len(choice.Delta.ToolCalls) > 0 {
+				if hasResponseContent != nil {
+					*hasResponseContent = true
+				}
+			}
 			responseTextBuilder.WriteString(choice.Delta.GetContentString())
 			responseTextBuilder.WriteString(choice.Delta.GetReasoningContent())
 			if choice.Delta.ToolCalls != nil {
@@ -140,7 +156,7 @@ func processChatCompletions(streamResp string, streamItems []string, responseTex
 	return nil
 }
 
-func processCompletions(streamResp string, streamItems []string, responseTextBuilder *strings.Builder) error {
+func processCompletions(streamResp string, streamItems []string, responseTextBuilder *strings.Builder, hasResponseContent *bool) error {
 	var streamResponses []dto.CompletionsStreamResponse
 	if err := json.Unmarshal(common.StringToByteSlice(streamResp), &streamResponses); err != nil {
 		// 一次性解析失败，逐个解析
@@ -151,6 +167,10 @@ func processCompletions(streamResp string, streamItems []string, responseTextBui
 				continue
 			}
 			for _, choice := range streamResponse.Choices {
+				text := strings.TrimSpace(choice.Text)
+				if text != "" && hasResponseContent != nil {
+					*hasResponseContent = true
+				}
 				responseTextBuilder.WriteString(choice.Text)
 			}
 		}
@@ -160,6 +180,10 @@ func processCompletions(streamResp string, streamItems []string, responseTextBui
 	// 批量处理所有响应
 	for _, streamResponse := range streamResponses {
 		for _, choice := range streamResponse.Choices {
+			text := strings.TrimSpace(choice.Text)
+			if text != "" && hasResponseContent != nil {
+				*hasResponseContent = true
+			}
 			responseTextBuilder.WriteString(choice.Text)
 		}
 	}

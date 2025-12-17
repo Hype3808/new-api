@@ -14,6 +14,7 @@ import (
 	"github.com/QuantumNous/new-api/logger"
 	"github.com/QuantumNous/new-api/model"
 	relaycommon "github.com/QuantumNous/new-api/relay/common"
+	relayconstant "github.com/QuantumNous/new-api/relay/constant"
 	"github.com/QuantumNous/new-api/relay/helper"
 	"github.com/QuantumNous/new-api/service"
 	"github.com/QuantumNous/new-api/setting/model_setting"
@@ -353,10 +354,23 @@ func postConsumeQuota(ctx *gin.Context, relayInfo *relaycommon.RelayInfo, usage 
 	quota := int(quotaCalculateDecimal.Round(0).IntPart())
 	totalTokens := promptTokens + completionTokens
 
+	applyEmptyFree := false
+	if operation_setting.GetQuotaSetting().SkipBillingOnEmptyResponse {
+		if relayInfo.RelayMode == relayconstant.RelayModeChatCompletions || relayInfo.RelayMode == relayconstant.RelayModeCompletions {
+			applyEmptyFree = relayInfo.EmptyResponse
+			if applyEmptyFree && usage != nil && usage.CompletionTokens > 0 {
+				applyEmptyFree = false
+			}
+		}
+	}
+
 	var logContent string
 
 	// record all the consume log even if quota is 0
-	if totalTokens == 0 {
+	if applyEmptyFree {
+		logContent += "空回不计费已生效"
+		quota = 0
+	} else if totalTokens == 0 {
 		// in this case, must be some error happened
 		// we cannot just return, because we may have to return the pre-consumed quota
 		quota = 0

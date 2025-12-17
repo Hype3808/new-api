@@ -38,6 +38,7 @@ const OperationSetting = () => {
     QuotaForInviter: 0,
     QuotaForInvitee: 0,
     'quota_setting.enable_free_model_pre_consume': true,
+    'quota_setting.skip_billing_on_empty_response': false,
 
     /* 通用设置 */
     TopUpLink: '',

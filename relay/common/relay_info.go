@@ -107,6 +107,7 @@ type RelayInfo struct {
 	UserQuota              int
 	RelayFormat            types.RelayFormat
 	SendResponseCount      int
+	EmptyResponse          bool // 标记是否为空响应，用于跳过计费
 	FinalPreConsumedQuota  int  // 最终预消耗的配额
 	IsClaudeBetaQuery      bool // /v1/messages?beta=true
 
