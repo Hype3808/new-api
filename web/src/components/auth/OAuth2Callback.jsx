@@ -38,9 +38,13 @@ const OAuth2Callback = (props) => {
 
   const sendCode = async (code, state) => {
     try {
-      const { data: resData } = await API.get(
-        `/api/oauth/${props.type}?code=${code}&state=${state}`,
-      );
+      const params = { code, state };
+      if (props.type === 'discord') {
+        params.redirect_uri = `${window.location.origin}/oauth/discord`;
+      }
+      const { data: resData } = await API.get(`/api/oauth/${props.type}`, {
+        params,
+      });
 
       const { success, message, data } = resData;
 

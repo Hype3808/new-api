@@ -41,7 +41,39 @@ type DiscordAuthResult struct {
 	AccessToken string
 }
 
-func getDiscordUserInfoByCode(code string) (*DiscordAuthResult, error) {
+// buildDiscordRedirectURI resolves the redirect_uri used for Discord token exchange.
+// Priority:
+// 1) redirect_uri query param provided by the frontend callback (ensures exact match)
+// 2) configured ServerAddress
+// 3) request host/protocol fallback
+func buildDiscordRedirectURI(c *gin.Context) string {
+	if uri := c.Query("redirect_uri"); uri != "" {
+		return uri
+	}
+
+	base := strings.TrimSuffix(system_setting.ServerAddress, "/")
+	if base != "" {
+		return fmt.Sprintf("%s/oauth/discord", base)
+	}
+
+	proto := "http"
+	forwardedProto := c.GetHeader("X-Forwarded-Proto")
+	if forwardedProto == "" {
+		forwardedProto = c.GetHeader("X-Forwarded-Protocol")
+	}
+	if strings.EqualFold(forwardedProto, "https") || c.Request.TLS != nil {
+		proto = "https"
+	}
+
+	host := c.Request.Host
+	if host == "" {
+		return "/oauth/discord"
+	}
+
+	return fmt.Sprintf("%s://%s/oauth/discord", proto, host)
+}
+
+func getDiscordUserInfoByCode(code string, redirectURI string) (*DiscordAuthResult, error) {
 	if code == "" {
 		return nil, errors.New("无效的参数")
 	}
@@ -53,7 +85,7 @@ func getDiscordUserInfoByCode(code string) (*DiscordAuthResult, error) {
 	values.Set("client_secret", system_setting.GetDiscordSettings().ClientSecret)
 	values.Set("code", code)
 	values.Set("grant_type", "authorization_code")
-	values.Set("redirect_uri", fmt.Sprintf("%s/oauth/discord", system_setting.ServerAddress))
+	values.Set("redirect_uri", redirectURI)
 	formData := values.Encode()
 	req, err := http.NewRequest("POST", "https://discord.com/api/v10/oauth2/token", strings.NewReader(formData))
 	if err != nil {
@@ -173,7 +205,8 @@ func DiscordOAuth(c *gin.Context) {
 		return
 	}
 	code := c.Query("code")
-	authResult, err := getDiscordUserInfoByCode(code)
+	redirectURI := buildDiscordRedirectURI(c)
+	authResult, err := getDiscordUserInfoByCode(code, redirectURI)
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -290,7 +323,8 @@ func DiscordBind(c *gin.Context) {
 		return
 	}
 	code := c.Query("code")
-	authResult, err := getDiscordUserInfoByCode(code)
+	redirectURI := buildDiscordRedirectURI(c)
+	authResult, err := getDiscordUserInfoByCode(code, redirectURI)
 	if err != nil {
 		common.ApiError(c, err)
 		return
