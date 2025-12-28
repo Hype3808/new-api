@@ -192,8 +192,10 @@ func DiscordOAuth(c *gin.Context) {
 	session.Delete("oauth_state")
 	session.Save()
 
+	// Check if this is a bind operation (user must be logged in with session id)
 	username := session.Get("username")
-	if username != nil {
+	id := session.Get("id")
+	if username != nil && id != nil {
 		DiscordBind(c)
 		return
 	}
