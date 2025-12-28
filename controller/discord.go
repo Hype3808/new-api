@@ -187,15 +187,10 @@ func DiscordOAuth(c *gin.Context) {
 		})
 		return
 	}
-
-	// Clear the oauth_state immediately after validation to prevent reuse
-	session.Delete("oauth_state")
-	session.Save()
-
-	// Check if this is a bind operation (user must be logged in with session id)
-	username := session.Get("username")
+	// Only route to bind if user is actually logged in (has id in session)
+	// Checking username alone can cause false positives from stale session data
 	id := session.Get("id")
-	if username != nil && id != nil {
+	if id != nil {
 		DiscordBind(c)
 		return
 	}
