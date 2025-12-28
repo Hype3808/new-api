@@ -1,4 +1,6 @@
-FROM oven/bun:latest AS builder
+# syntax=docker/dockerfile:1.4
+
+FROM --platform=$BUILDPLATFORM oven/bun:latest AS web-builder
 
 WORKDIR /build
 COPY ./web/package.json ./
@@ -7,7 +9,7 @@ COPY ./web .
 COPY ./VERSION .
 RUN DISABLE_ESLINT_PLUGIN='true' VITE_REACT_APP_VERSION=$(cat VERSION) bun run build
 
-FROM golang:alpine AS builder2
+FROM --platform=$BUILDPLATFORM golang:alpine AS builder2
 ENV GO111MODULE=on \
     CGO_ENABLED=0 \
     GOPROXY=https://proxy.golang.org,direct
@@ -20,16 +22,24 @@ WORKDIR /build
 
 # Copy only go.mod and go.sum first to leverage Docker cache
 COPY go.mod go.sum ./
-RUN go mod download && go mod verify
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    go mod download && go mod verify
 
 # Copy source code after dependencies are cached
 COPY . .
 
 # Copy web dist from builder
-COPY --from=builder /build/dist ./web/dist
+COPY --from=web-builder /build/dist ./web/dist
 
 # Build with optimizations
-RUN go build -ldflags "-s -w -X 'github.com/QuantumNous/new-api/common.Version=$(cat VERSION)'" -o new-api
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    go build -trimpath -ldflags "-s -w -X 'github.com/QuantumNous/new-api/common.Version=$(cat VERSION)'" -o new-api
+
+# Install certs and tzdata on build platform to avoid emulation during target builds
+FROM --platform=$BUILDPLATFORM alpine:latest AS deps
+RUN apk add --no-cache ca-certificates tzdata
 
 FROM alpine:latest
 
