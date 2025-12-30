@@ -364,6 +364,7 @@
     "允许的端口": "Cổng được phép",
     "允许访问私有IP地址（127.0.0.1、192.168.x.x等内网地址）": "Cho phép truy cập địa chỉ IP riêng (127.0.0.1, 192.168.x.x và các địa chỉ nội bộ khác)",
     "允许通过 GitHub 账户登录 & 注册": "Cho phép đăng nhập & đăng ký qua tài khoản GitHub",
+    "允许通过 Discord 账户登录 & 注册": "Cho phép đăng nhập & đăng ký qua tài khoản Discord",
     "允许通过 Linux DO 账户登录 & 注册": "Cho phép đăng nhập & đăng ký qua tài khoản Linux DO",
     "允许通过 OIDC 进行登录": "Cho phép đăng nhập qua OIDC",
     "允许通过 Passkey 登录 & 认证": "Cho phép đăng nhập & xác thực qua Passkey",

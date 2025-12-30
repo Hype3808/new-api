@@ -233,13 +233,6 @@ const CheckinCard = ({ t, userState, onCheckinSuccess }) => {
             </Tooltip>
           )}
         </div>
-
-        {/* Reason if cannot check-in */}
-        {!canCheckin && !hasCheckedIn && checkinStatus?.reason && (
-          <div className='text-center text-sm text-orange-500'>
-            {checkinStatus.reason}
-          </div>
-        )}
       </div>
     </Card>
   );

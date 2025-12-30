@@ -364,6 +364,7 @@
     "允许的端口": "Allowed Ports",
     "允许访问私有IP地址（127.0.0.1、192.168.x.x等内网地址）": "Allow access to private IP addresses (127.0.0.1, 192.168.x.x and other internal addresses)",
     "允许通过 GitHub 账户登录 & 注册": "Allow login & registration via GitHub account",
+    "允许通过 Discord 账户登录 & 注册": "Allow login & registration via Discord account",
     "允许通过 Linux DO 账户登录 & 注册": "Allow login & registration via Linux DO account",
     "允许通过 OIDC 进行登录": "Allow login via OIDC",
     "允许通过 Passkey 登录 & 认证": "Allow login & authentication via Passkey",

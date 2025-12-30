@@ -8,7 +8,35 @@ import (
 	"github.com/QuantumNous/new-api/dto"
 	"github.com/QuantumNous/new-api/model"
 	"github.com/QuantumNous/new-api/setting/checkin_setting"
+	"github.com/QuantumNous/new-api/setting/operation_setting"
 )
+
+// formatQuotaWithCurrency converts quota (tokens) to display amount with currency symbol
+func formatQuotaWithCurrency(quota int) string {
+	quotaPerUnit := common.QuotaPerUnit
+	usdAmount := float64(quota) / quotaPerUnit
+
+	displayType := operation_setting.GetQuotaDisplayType()
+	if displayType == operation_setting.QuotaDisplayTypeTokens {
+		return fmt.Sprintf("%d", quota)
+	}
+
+	symbol := operation_setting.GetCurrencySymbol()
+	
+	// Get exchange rate for CNY or Custom currency
+	var displayAmount float64
+	if displayType == operation_setting.QuotaDisplayTypeCNY {
+		displayAmount = usdAmount * operation_setting.USDExchangeRate
+	} else if displayType == operation_setting.QuotaDisplayTypeCustom {
+		generalSetting := operation_setting.GetGeneralSetting()
+		displayAmount = usdAmount * generalSetting.CustomCurrencyExchangeRate
+	} else {
+		// USD
+		displayAmount = usdAmount
+	}
+
+	return fmt.Sprintf("%s%.2f", symbol, displayAmount)
+}
 
 const (
 	// CheckinCacheKeyFmt is the Redis key format for checkin status
@@ -89,7 +117,7 @@ func CanCheckin(userId int) (bool, string, error) {
 		return false, "", err
 	}
 	if userQuota >= setting.QuotaThreshold {
-		return false, fmt.Sprintf("当前额度超过签到阈值（%d），无法签到", setting.QuotaThreshold), nil
+		return false, fmt.Sprintf("当前额度超过签到阈值（%s），无法签到", formatQuotaWithCurrency(setting.QuotaThreshold)), nil
 	}
 
 	return true, "", nil
@@ -133,7 +161,7 @@ func DoCheckin(userId int) (*dto.CheckinResult, error) {
 	if quotaBefore >= setting.QuotaThreshold {
 		return &dto.CheckinResult{
 			Success: false,
-			Message: fmt.Sprintf("当前额度超过签到阈值（%d），无法签到", setting.QuotaThreshold),
+			Message: fmt.Sprintf("当前额度超过签到阈值（%s），无法签到", formatQuotaWithCurrency(setting.QuotaThreshold)),
 		}, nil
 	}
 
@@ -230,7 +258,7 @@ func GetCheckinStatus(userId int) (*dto.CheckinStatus, error) {
 		status.Reason = "今日已签到，请明天再来"
 	} else if userQuota >= setting.QuotaThreshold {
 		status.CanCheckin = false
-		status.Reason = fmt.Sprintf("当前额度超过签到阈值（%d），无法签到", setting.QuotaThreshold)
+		status.Reason = fmt.Sprintf("当前额度超过签到阈值（%s），无法签到", formatQuotaWithCurrency(setting.QuotaThreshold))
 	} else {
 		status.CanCheckin = true
 	}

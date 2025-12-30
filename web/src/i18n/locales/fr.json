@@ -366,6 +366,7 @@
     "允许的端口": "Ports autorisés",
     "允许访问私有IP地址（127.0.0.1、192.168.x.x等内网地址）": "Autoriser l'accès aux adresses IP privées (127.0.0.1, 192.168.x.x et autres adresses de réseau interne)",
     "允许通过 GitHub 账户登录 & 注册": "Autoriser la connexion & l'inscription via le compte GitHub",
+    "允许通过 Discord 账户登录 & 注册": "Autoriser la connexion & l'inscription via le compte Discord",
     "允许通过 Linux DO 账户登录 & 注册": "Autoriser la connexion & l'inscription via le compte Linux DO",
     "允许通过 OIDC 进行登录": "Autoriser la connexion via OIDC",
     "允许通过 Passkey 登录 & 认证": "Autoriser la connexion et l'authentification via Passkey",
