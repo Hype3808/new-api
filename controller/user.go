@@ -274,8 +274,11 @@ func Register(c *gin.Context) {
 }
 
 func GetAllUsers(c *gin.Context) {
+	sortBy := c.Query("sort_by")
+	sortOrder := c.Query("sort_order")
+
 	pageInfo := common.GetPageQuery(c)
-	users, total, err := model.GetAllUsers(pageInfo)
+	users, total, err := model.GetAllUsers(pageInfo, sortBy, sortOrder)
 	if err != nil {
 		common.ApiError(c, err)
 		return
@@ -295,6 +298,8 @@ func SearchUsers(c *gin.Context) {
 	idMaxStr := c.Query("id_max")
 	requestCountStr := c.Query("request_count")
 	requestCountMode := c.Query("request_count_mode")
+	sortBy := c.Query("sort_by")
+	sortOrder := c.Query("sort_order")
 
 	// Parse ID range filters
 	var idMin, idMax int
@@ -318,7 +323,7 @@ func SearchUsers(c *gin.Context) {
 	}
 
 	pageInfo := common.GetPageQuery(c)
-	users, total, err := model.SearchUsers(keyword, group, idMin, idMax, requestCount, requestCountMode, pageInfo.GetStartIdx(), pageInfo.GetPageSize())
+	users, total, err := model.SearchUsers(keyword, group, idMin, idMax, requestCount, requestCountMode, sortBy, sortOrder, pageInfo.GetStartIdx(), pageInfo.GetPageSize())
 	if err != nil {
 		common.ApiError(c, err)
 		return

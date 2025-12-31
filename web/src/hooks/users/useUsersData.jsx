@@ -57,6 +57,8 @@ export const useUsersData = () => {
     idMax: '',
     requestCount: '',
     requestCountMode: '',
+    sortBy: 'id',
+    sortOrder: 'desc',
   };
 
   // Form API reference
@@ -72,6 +74,8 @@ export const useUsersData = () => {
       idMax: formValues.idMax || '',
       requestCount: formValues.requestCount || '',
       requestCountMode: formValues.requestCountMode || '',
+      sortBy: formValues.sortBy || 'id',
+      sortOrder: formValues.sortOrder || 'desc',
     };
   };
 
@@ -84,9 +88,21 @@ export const useUsersData = () => {
   };
 
   // Load users data
-  const loadUsers = async (startIdx, pageSize) => {
+  const loadUsers = async (startIdx, pageSize, sortBy = null, sortOrder = null) => {
     setLoading(true);
-    const res = await API.get(`/api/user/?p=${startIdx}&page_size=${pageSize}`);
+
+    // Pull sort settings from form when not explicitly provided
+    if (sortBy === null || sortOrder === null) {
+      const formValues = getFormValues();
+      sortBy = sortBy === null ? formValues.sortBy : sortBy;
+      sortOrder = sortOrder === null ? formValues.sortOrder : sortOrder;
+    }
+
+    const res = await API.get(
+      `/api/user/?p=${startIdx}&page_size=${pageSize}&sort_by=${encodeURIComponent(
+        sortBy,
+      )}&sort_order=${encodeURIComponent(sortOrder)}`,
+    );
     const { success, message, data } = res.data;
     if (success) {
       const newPageData = data.items;
@@ -109,6 +125,8 @@ export const useUsersData = () => {
     idMax = null,
     requestCount = null,
     requestCountMode = null,
+    sortBy = null,
+    sortOrder = null,
   ) => {
     // If no parameters passed, get values from form
     if (searchKeyword === null) {
@@ -119,6 +137,8 @@ export const useUsersData = () => {
       idMax = formValues.idMax;
       requestCount = formValues.requestCount;
       requestCountMode = formValues.requestCountMode;
+      sortBy = formValues.sortBy;
+      sortOrder = formValues.sortOrder;
     }
 
     const hasFilters =
@@ -142,6 +162,12 @@ export const useUsersData = () => {
     if (idMax) url += `&id_max=${idMax}`;
     if (requestCount && requestCountMode) {
       url += `&request_count=${requestCount}&request_count_mode=${requestCountMode}`;
+    }
+    if (sortBy) {
+      url += `&sort_by=${encodeURIComponent(sortBy)}`;
+    }
+    if (sortOrder) {
+      url += `&sort_order=${encodeURIComponent(sortOrder)}`;
     }
 
     const res = await API.get(url);
@@ -275,6 +301,8 @@ export const useUsersData = () => {
       idMax,
       requestCount,
       requestCountMode,
+      sortBy,
+      sortOrder,
     } = getFormValues();
     const hasFilters =
       searchKeyword !== '' ||
@@ -295,6 +323,8 @@ export const useUsersData = () => {
         idMax,
         requestCount,
         requestCountMode,
+        sortBy,
+        sortOrder,
       ).then();
     }
   };
@@ -304,7 +334,8 @@ export const useUsersData = () => {
     localStorage.setItem('page-size', size + '');
     setPageSize(size);
     setActivePage(1);
-    loadUsers(activePage, size)
+    const { sortBy, sortOrder } = getFormValues();
+    loadUsers(activePage, size, sortBy, sortOrder)
       .then()
       .catch((reason) => {
         showError(reason);
@@ -333,6 +364,8 @@ export const useUsersData = () => {
       idMax,
       requestCount,
       requestCountMode,
+      sortBy,
+      sortOrder,
     } = getFormValues();
     const hasFilters =
       searchKeyword !== '' ||
@@ -342,7 +375,7 @@ export const useUsersData = () => {
       (requestCount !== '' && requestCountMode !== '');
 
     if (!hasFilters) {
-      await loadUsers(page, pageSize);
+      await loadUsers(page, pageSize, sortBy, sortOrder);
     } else {
       await searchUsers(
         page,
@@ -353,6 +386,8 @@ export const useUsersData = () => {
         idMax,
         requestCount,
         requestCountMode,
+        sortBy,
+        sortOrder,
       );
     }
   };

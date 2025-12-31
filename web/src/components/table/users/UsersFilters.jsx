@@ -49,6 +49,19 @@ const UsersFilters = ({
     { label: t('大于'), value: 'more_than' },
   ];
 
+  const sortFieldOptions = [
+    { label: t('按 ID'), value: 'id' },
+    { label: t('按用户名'), value: 'username' },
+    { label: t('按请求次数'), value: 'request_count' },
+    { label: t('按总额度'), value: 'total_quota' },
+    { label: t('按剩余额度'), value: 'remaining_quota' },
+  ];
+
+  const sortOrderOptions = [
+    { label: t('升序'), value: 'asc' },
+    { label: t('降序'), value: 'desc' },
+  ];
+
   return (
     <Form
       initValues={formInitValues}
@@ -92,6 +105,36 @@ const UsersFilters = ({
               }}
               className='w-full'
               showClear
+              pure
+              size='small'
+            />
+          </div>
+          <div className='w-full md:w-40'>
+            <Form.Select
+              field='sortBy'
+              placeholder={t('排序字段')}
+              optionList={sortFieldOptions}
+              onChange={() => {
+                setTimeout(() => {
+                  searchUsers(1, pageSize);
+                }, 100);
+              }}
+              className='w-full'
+              pure
+              size='small'
+            />
+          </div>
+          <div className='w-full md:w-32'>
+            <Form.Select
+              field='sortOrder'
+              placeholder={t('排序方式')}
+              optionList={sortOrderOptions}
+              onChange={() => {
+                setTimeout(() => {
+                  searchUsers(1, pageSize);
+                }, 100);
+              }}
+              className='w-full'
               pure
               size='small'
             />
