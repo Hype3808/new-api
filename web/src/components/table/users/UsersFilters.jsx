@@ -109,36 +109,6 @@ const UsersFilters = ({
               size='small'
             />
           </div>
-          <div className='w-full md:w-40'>
-            <Form.Select
-              field='sortBy'
-              placeholder={t('排序字段')}
-              optionList={sortFieldOptions}
-              onChange={() => {
-                setTimeout(() => {
-                  searchUsers(1, pageSize);
-                }, 100);
-              }}
-              className='w-full'
-              pure
-              size='small'
-            />
-          </div>
-          <div className='w-full md:w-32'>
-            <Form.Select
-              field='sortOrder'
-              placeholder={t('排序方式')}
-              optionList={sortOrderOptions}
-              onChange={() => {
-                setTimeout(() => {
-                  searchUsers(1, pageSize);
-                }, 100);
-              }}
-              className='w-full'
-              pure
-              size='small'
-            />
-          </div>
           <Button
             type='tertiary'
             icon={showAdvancedFilters ? <IconChevronUp /> : <IconChevronDown />}
@@ -220,6 +190,39 @@ const UsersFilters = ({
                 size='small'
                 className='w-24'
                 pure
+              />
+            </div>
+
+            {/* Sort controls */}
+            <div className='flex items-center gap-1 w-full md:w-auto'>
+              <Typography.Text size='small' className='whitespace-nowrap'>
+                {t('排序')}:
+              </Typography.Text>
+              <Form.Select
+                field='sortBy'
+                placeholder={t('字段')}
+                optionList={sortFieldOptions}
+                onChange={() => {
+                  setTimeout(() => {
+                    searchUsers(1, pageSize);
+                  }, 100);
+                }}
+                className='w-32'
+                pure
+                size='small'
+              />
+              <Form.Select
+                field='sortOrder'
+                placeholder={t('顺序')}
+                optionList={sortOrderOptions}
+                onChange={() => {
+                  setTimeout(() => {
+                    searchUsers(1, pageSize);
+                  }, 100);
+                }}
+                className='w-24'
+                pure
+                size='small'
               />
             </div>
           </div>
