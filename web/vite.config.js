@@ -28,6 +28,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      // Some environments look for the minified CSS export which is not declared in exports.
+      '@douyinfe/semi-ui/dist/css/semi.min.css': '@douyinfe/semi-ui/dist/css/semi.css',
     },
   },
   plugins: [
