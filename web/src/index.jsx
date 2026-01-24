@@ -20,7 +20,7 @@ For commercial licensing, please contact support@quantumnous.com
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
-// Use the exported minified stylesheet to satisfy package export map
+// Import Semi UI styles; resolution is aliased to the on-disk file to avoid export map issues
 import '@douyinfe/semi-ui/dist/css/semi.min.css';
 import { UserProvider } from './context/User';
 import 'react-toastify/dist/ReactToastify.css';

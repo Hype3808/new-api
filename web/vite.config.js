@@ -23,13 +23,23 @@ import pkg from '@douyinfe/vite-plugin-semi';
 import path from 'path';
 const { vitePluginSemi } = pkg;
 
+const semiCssPath = path.resolve(
+  __dirname,
+  'node_modules/@douyinfe/semi-ui/dist/css/semi.min.css',
+);
+const semiCssPathUnminified = path.resolve(
+  __dirname,
+  'node_modules/@douyinfe/semi-ui/dist/css/semi.css',
+);
+
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      // Map the non-exported CSS path to the exported minified stylesheet to satisfy Vite/rollup resolution.
-      '@douyinfe/semi-ui/dist/css/semi.css': '@douyinfe/semi-ui/dist/css/semi.min.css',
+      // Bypass package export map limitations by resolving the Semi UI CSS files directly.
+      '@douyinfe/semi-ui/dist/css/semi.min.css': semiCssPath,
+      '@douyinfe/semi-ui/dist/css/semi.css': semiCssPathUnminified,
     },
   },
   plugins: [
