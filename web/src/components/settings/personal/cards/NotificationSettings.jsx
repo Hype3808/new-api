@@ -322,7 +322,7 @@ const NotificationSettings = ({
 
   return (
     <Card
-      className='!rounded-2xl shadow-sm border-0'
+      className='!rounded-2xl shadow-sm border-0 text-sm'
       footer={
         <div className='flex justify-end gap-3'>
           {activeTabKey === 'sidebar' ? (
@@ -359,10 +359,10 @@ const NotificationSettings = ({
           <Bell size={16} />
         </Avatar>
         <div>
-          <Typography.Text className='text-lg font-medium'>
+          <Typography.Text className='text-base font-medium leading-tight'>
             {t('其他设置')}
           </Typography.Text>
-          <div className='text-xs text-gray-600'>
+          <div className='text-xs text-gray-600 leading-snug'>
             {t('通知、价格和隐私相关设置')}
           </div>
         </div>
@@ -372,12 +372,14 @@ const NotificationSettings = ({
         getFormApi={(api) => (formApiRef.current = api)}
         initValues={notificationSettings}
         onSubmit={handleSubmit}
+        size='small'
       >
         {() => (
           <Tabs
             type='card'
             defaultActiveKey='notification'
             onChange={(key) => setActiveTabKey(key)}
+            size='small'
           >
             {/* 通知配置 Tab */}
             <TabPane

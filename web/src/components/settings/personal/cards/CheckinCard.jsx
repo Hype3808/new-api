@@ -109,7 +109,7 @@ const CheckinCard = ({ t, userState, onCheckinSuccess }) => {
   // Don't render if feature is disabled or still loading
   if (loading) {
     return (
-      <Card className='!rounded-2xl'>
+      <Card className='!rounded-2xl text-sm' bodyStyle={{ padding: '16px' }}>
         <div className='flex items-center justify-center py-8'>
           <Spin />
         </div>
@@ -125,18 +125,18 @@ const CheckinCard = ({ t, userState, onCheckinSuccess }) => {
   const hasCheckedIn = checkinStatus?.has_checked_in;
 
   return (
-    <Card className='!rounded-2xl'>
+    <Card className='!rounded-2xl text-sm' bodyStyle={{ padding: '16px' }}>
       {/* Card Header */}
-      <div className='flex items-center justify-between mb-6'>
+      <div className='flex items-center justify-between mb-4'>
         <div className='flex items-center'>
-          <Avatar size='default' style={{ backgroundColor: '#1890ff' }} className='mr-3'>
-            <CalendarCheck size={20} />
+          <Avatar size='small' style={{ backgroundColor: '#1890ff' }} className='mr-3'>
+            <CalendarCheck size={18} />
           </Avatar>
           <div>
-            <Typography.Text className='text-base font-medium block'>
+            <Typography.Text className='text-base font-semibold leading-tight block'>
               {t('每日签到')}
             </Typography.Text>
-            <Typography.Text className='text-xs text-gray-500'>
+            <Typography.Text className='text-xs text-gray-500 leading-snug'>
               {t('每天可签到一次，领取固定额度奖励')}
             </Typography.Text>
           </div>
@@ -144,12 +144,12 @@ const CheckinCard = ({ t, userState, onCheckinSuccess }) => {
       </div>
 
       {/* Check-in Content */}
-      <div className='space-y-2'>
+      <div className='space-y-2.5'>
         {/* Today's Reward */}
         <div className='flex items-center justify-between'>
-          <Typography.Text className='text-sm'>
+          <Typography.Text className='text-sm text-gray-800'>
             {t('今日奖励')}：
-            <Typography.Text strong className='ml-1'>
+            <Typography.Text strong className='ml-1 text-base text-gray-900'>
               {renderQuota(checkinStatus?.reward_quota || 0)}
             </Typography.Text>
           </Typography.Text>
@@ -166,12 +166,20 @@ const CheckinCard = ({ t, userState, onCheckinSuccess }) => {
         </div>
 
         {/* Check-in Status */}
-        <Typography.Text className='text-sm block'>
+        <Typography.Text
+          className='block text-[13px] text-gray-600'
+          size='small'
+          type='secondary'
+        >
           {hasCheckedIn ? t('今日已签到') : t('今日未签到')}
         </Typography.Text>
 
         {/* Threshold Info */}
-        <Typography.Text className='text-sm text-gray-500 block'>
+        <Typography.Text
+          className='block text-xs text-gray-500 leading-relaxed'
+          size='small'
+          type='tertiary'
+        >
           {t('当前额度')} {renderQuota(checkinStatus?.current_quota || userState?.user?.quota || 0)}，
           {t('需低于')} {renderQuota(checkinStatus?.quota_threshold || 0)} {t('才可签到')}
         </Typography.Text>
