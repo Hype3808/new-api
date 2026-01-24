@@ -136,9 +136,9 @@ const CheckinCard = ({ t, userState, onCheckinSuccess }) => {
             <Typography.Text className='text-base font-normal leading-tight block'>
               {t('每日签到')}
             </Typography.Text>
-            <Typography.Text className='text-xs text-gray-500 leading-snug'>
+            <div className='text-xs text-gray-600 leading-snug'>
               {t('每天可签到一次，领取固定额度奖励')}
-            </Typography.Text>
+            </div>
           </div>
         </div>
       </div>
@@ -148,7 +148,7 @@ const CheckinCard = ({ t, userState, onCheckinSuccess }) => {
         {/* Today's Reward */}
         <div className='flex items-center justify-between'>
           <Typography.Text className='text-sm text-gray-800'>
-            {t('今日奖励')}：
+            {t('签到奖励')}：
             <Typography.Text strong className='ml-1 text-base text-gray-900'>
               {renderQuota(checkinStatus?.reward_quota || 0)}
             </Typography.Text>
