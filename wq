@@ -1,0 +1,247 @@
+[33mcommit 4600107a9373be0e020b317790d5344e4a266364[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Sat Jan 24 15:59:27 2026 +0800
+
+    Bug fixing
+
+[33mcommit 496b1210c02d7ac10be2a89f3d40724ef1eb2f82[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Sat Jan 24 15:52:37 2026 +0800
+
+    Bug fixing
+
+[33mcommit 4f7bf9bfd4c1dc34dc0ad08148cad92543f29acc[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Sat Jan 24 15:47:52 2026 +0800
+
+    Bug fixing
+
+[33mcommit 8eee0b6991e896d4d6636d0b9d791778f3ffd921[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Sat Jan 24 15:43:20 2026 +0800
+
+    Enhance UI
+
+[33mcommit 78e67b2ec3f58a414a6ba8fe9a5d4335f9b90c8d[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Wed Dec 31 15:16:08 2025 +0800
+
+    Fix ui issue
+
+[33mcommit f3f1166e630ad301f935e91b21dc23ac9d7517da[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Wed Dec 31 15:07:17 2025 +0800
+
+    Add sorting feature to user management
+
+[33mcommit 0f6537554ac53cb79ba2d0a6ac9ca4aa99fe2805[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Tue Dec 30 11:05:17 2025 +0800
+
+    Enhance check-in ui
+
+[33mcommit fee5b96b570a267439097e994728019434826cfc[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Sun Dec 28 12:30:56 2025 +0800
+
+    Fix discord binding bug
+
+[33mcommit 0aafff214d8eba842f96073f3df6a0203820d6b2[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Sun Dec 28 12:18:05 2025 +0800
+
+    Fix discord binding bug
+
+[33mcommit ae596f4f24c1f872f9f0e76bc64bb7dad239a357[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Sun Dec 28 10:59:25 2025 +0800
+
+    Build based on platforms
+
+[33mcommit 912ea2162aa06d826c3790b1ebafef83d1b48cc8[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Sun Dec 28 10:47:01 2025 +0800
+
+    Seperate arm64 and amd64 builds
+
+[33mcommit c7434e39e635b260e19ccbce316856875279cba5[m
+Author: Hype6969 <74125180+Hype3808@users.noreply.github.com>
+Date:   Sat Dec 27 21:19:08 2025 +0800
+
+    Add arm64 build
+    
+    I might need it in the future
+
+[33mcommit 440c3632771c56ebf6f736b41c11360fe329e889[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Wed Dec 24 15:57:29 2025 +0800
+
+    Fix discord account binding
+
+[33mcommit 8d34c9a597fee54c7d24a69c125ac03eaf0c7700[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Wed Dec 17 16:35:26 2025 +0800
+
+    No deduction when empty response
+
+[33mcommit f1ac5811beae1e40825a12d62c355f68bf30faef[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Fri Dec 12 08:37:41 2025 +0800
+
+    Revert "Improve discord login mechanism"
+    
+    This reverts commit c027054cd423f5b3a270e653eaca5df9e5890a83.
+
+[33mcommit c027054cd423f5b3a270e653eaca5df9e5890a83[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Thu Dec 11 19:55:26 2025 +0800
+
+    Improve discord login mechanism
+
+[33mcommit 2ae851c68a711fb3254b4fd63350934c02b7e7f3[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Thu Dec 11 15:47:10 2025 +0800
+
+    i18n completion
+
+[33mcommit 40961739acb6926c6d93d738b8a66f9c5d2707b5[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Thu Dec 11 15:38:10 2025 +0800
+
+    i18n completion
+
+[33mcommit 12db08015a93dfe3a7b8c8faf935057109a73f4b[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Thu Dec 11 15:01:20 2025 +0800
+
+    Fix contradictions and design
+
+[33mcommit 227cb805d530543f91b23b149ea33e0dff2cda78[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Thu Dec 11 14:46:19 2025 +0800
+
+    Enhance layout
+
+[33mcommit edc2cb3a50c7abd82481467ece5aa5f4a272ac85[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Thu Dec 11 12:28:23 2025 +0800
+
+    Fix layout and settings not working
+
+[33mcommit 7cfb891483195e9a040c8e18608dcba032ea9b90[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Thu Dec 11 12:21:00 2025 +0800
+
+    Fix layout
+
+[33mcommit d7c4bd81abce9326d8d1bba4735f1160fb51b442[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Thu Dec 11 12:14:12 2025 +0800
+
+    Improve error message on token creation
+
+[33mcommit edb798983e6a8adf647a73c9cfb18193cdea0840[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Thu Dec 11 12:05:24 2025 +0800
+
+    Force user to select token group (settings)
+
+[33mcommit b0735f1748ae31e440b95c0e5a1c99bec9b653c3[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Tue Dec 9 11:47:38 2025 +0800
+
+    Attempt to fix cookie validation
+
+[33mcommit 66d200aa2f3806ea61021e29938905c627fa4bb7[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Tue Dec 9 11:37:18 2025 +0800
+
+    Attempt to fix cookie validation
+
+[33mcommit 8b645422e2cf7d73db4ccee45818864ec3d170ab[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Tue Dec 9 10:19:57 2025 +0800
+
+    Fix Discord OAuth
+
+[33mcommit 6ac65de81f222972396dc419d50551dc54384d92[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Tue Dec 9 08:31:48 2025 +0800
+
+    Fix cookies validation
+
+[33mcommit a6b254eb5de62a8698bafcf1e241da6cf672f0eb[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Sun Dec 7 10:22:16 2025 +0800
+
+    Performance tuning III
+
+[33mcommit 37ce63f1f925bccc5e2bac7a66a81ac330b4ff62[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Sat Dec 6 12:07:38 2025 +0800
+
+    Preformance tunning II
+
+[33mcommit a8ff129c7c155e6b46f8c9204a957d9c92468c3f[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Sat Dec 6 11:12:03 2025 +0800
+
+    Memory tuning
+
+[33mcommit 815447d863eedd1ef90cb8e0dc0ddbee0890aa85[m
+Author: Hype6969 <74125180+Hype3808@users.noreply.github.com>
+Date:   Fri Dec 5 16:59:45 2025 +0800
+
+    Using single platform build
+    
+    Removed QEMU setup step and adjusted platforms for Docker build.
+
+[33mcommit 40b3313d9894b2df6f3cd765736940a8d69a0ce2[m
+Author: Hype6969 <74125180+Hype3808@users.noreply.github.com>
+Date:   Fri Dec 5 16:53:50 2025 +0800
+
+    Add QEMU setup to Docker publish workflow
+    
+    Added QEMU setup step for multi-platform builds.
+
+[33mcommit 913d60e0951ff80b5349117711ce8b47fb63f11b[m
+Author: Hype6969 <74125180+Hype3808@users.noreply.github.com>
+Date:   Fri Dec 5 16:50:50 2025 +0800
+
+    Fix push failed
+
+[33mcommit 184c7c5256cc9ad374bb0a7386725e5d06783d34[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Fri Dec 5 16:47:52 2025 +0800
+
+    Added a few features and bug fixes
+
+[33mcommit d4fc64047b42a9a3617724544e9054fba9783230[m
+Author: Hype6969 <74125180+Hype3808@users.noreply.github.com>
+Date:   Mon Dec 1 15:53:34 2025 +0800
+
+    Revert
+
+[33mcommit 9d81a6adcd52b8040ec1f70f52f59b47880ec7f8[m
+Author: Hype6969 <74125180+Hype3808@users.noreply.github.com>
+Date:   Mon Dec 1 15:51:44 2025 +0800
+
+    Optimize
+
+[33mcommit e18a323456f7666d17c09ebd3cfad73378bb05b3[m
+Author: Hype6969 <74125180+Hype3808@users.noreply.github.com>
+Date:   Mon Dec 1 15:22:25 2025 +0800
+
+    Fix
+
+[33mcommit cf481a890c03d7da4979099654eb5abb835339ff[m
+Author: Hype6969 <74125180+Hype3808@users.noreply.github.com>
+Date:   Mon Dec 1 15:21:06 2025 +0800
+
+    Fix publish fail
+
+[33mcommit bbd166ff310c1286c0d7901b6649733500642e2d[m
+Author: Hype3808 <lucaswong080917@gmail.com>
+Date:   Mon Dec 1 15:19:36 2025 +0800
+
+    Upload
