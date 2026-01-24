@@ -133,7 +133,7 @@ const CheckinCard = ({ t, userState, onCheckinSuccess }) => {
             <CalendarCheck size={18} />
           </Avatar>
           <div>
-            <Typography.Text className='text-base font-semibold leading-tight block'>
+            <Typography.Text className='text-base font-normal leading-tight block'>
               {t('每日签到')}
             </Typography.Text>
             <Typography.Text className='text-xs text-gray-500 leading-snug'>
