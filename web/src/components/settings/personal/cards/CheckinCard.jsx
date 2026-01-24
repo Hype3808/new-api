@@ -127,112 +127,54 @@ const CheckinCard = ({ t, userState, onCheckinSuccess }) => {
   return (
     <Card className='!rounded-2xl'>
       {/* Card Header */}
-      <div className='flex items-center mb-4'>
-        <Avatar size='small' color='orange' className='mr-3 shadow-md'>
-          <CalendarCheck size={16} />
-        </Avatar>
-        <div>
-          <Typography.Text className='text-lg font-medium'>
-            {t('每日签到')}
-          </Typography.Text>
-          <div className='text-xs text-gray-600'>
-            {t('每日签到获取额度奖励')}
+      <div className='flex items-center justify-between mb-6'>
+        <div className='flex items-center'>
+          <Avatar size='default' style={{ backgroundColor: '#1890ff' }} className='mr-3'>
+            <CalendarCheck size={20} />
+          </Avatar>
+          <div>
+            <Typography.Text className='text-base font-medium block'>
+              {t('每日签到')}
+            </Typography.Text>
+            <Typography.Text className='text-xs text-gray-500'>
+              {t('每天可签到一次，领取固定额度奖励')}
+            </Typography.Text>
           </div>
         </div>
       </div>
 
       {/* Check-in Content */}
-      <div className='space-y-4'>
-        {/* Status Info */}
-        <div className='grid grid-cols-2 gap-4'>
-          {/* Current Quota */}
-          <Card className='!rounded-xl' bodyStyle={{ padding: '12px 16px' }}>
-            <div className='flex items-center gap-2 mb-1'>
-              <Gift size={14} className='text-orange-500' />
-              <Typography.Text size='small' type='tertiary'>
-                {t('当前额度')}
-              </Typography.Text>
-            </div>
-            <Typography.Text strong>
-              {renderQuota(checkinStatus?.current_quota || userState?.user?.quota || 0)}
+      <div className='space-y-2'>
+        {/* Today's Reward */}
+        <div className='flex items-center justify-between'>
+          <Typography.Text className='text-sm'>
+            {t('今日奖励')}：
+            <Typography.Text strong className='ml-1'>
+              {renderQuota(checkinStatus?.reward_quota || 0)}
             </Typography.Text>
-          </Card>
-
-          {/* Reward Quota */}
-          <Card className='!rounded-xl' bodyStyle={{ padding: '12px 16px' }}>
-            <div className='flex items-center gap-2 mb-1'>
-              <Gift size={14} className='text-green-500' />
-              <Typography.Text size='small' type='tertiary'>
-                {t('签到奖励')}
-              </Typography.Text>
-            </div>
-            <Typography.Text strong className='text-green-600'>
-              +{renderQuota(checkinStatus?.reward_quota || 0)}
-            </Typography.Text>
-          </Card>
+          </Typography.Text>
+          <Button
+            type='tertiary'
+            size='small'
+            loading={checkinLoading}
+            onClick={handleCheckin}
+            disabled={!canCheckin || hasCheckedIn}
+            className='!rounded-lg !px-6'
+          >
+            {t('签到')}
+          </Button>
         </div>
+
+        {/* Check-in Status */}
+        <Typography.Text className='text-sm block'>
+          {hasCheckedIn ? t('今日已签到') : t('今日未签到')}
+        </Typography.Text>
 
         {/* Threshold Info */}
-        <div className='flex items-center gap-2 text-sm text-gray-500'>
-          <AlertCircle size={14} />
-          <span>
-            {t('额度低于 {{threshold}} 时可签到', {
-              threshold: renderQuota(checkinStatus?.quota_threshold || 0),
-            })}
-          </span>
-        </div>
-
-        {/* Last Check-in Time */}
-        {checkinStatus?.last_checkin_time > 0 && (
-          <div className='flex items-center gap-2 text-sm text-gray-500'>
-            <Clock size={14} />
-            <span>
-              {t('上次签到')}: {formatTime(checkinStatus.last_checkin_time)}
-            </span>
-          </div>
-        )}
-
-        {/* Check-in Button */}
-        <div className='pt-2'>
-          {hasCheckedIn ? (
-            <Tooltip content={getNextCheckinText()}>
-              <Button
-                type='primary'
-                theme='solid'
-                disabled
-                block
-                icon={<IconTick />}
-                className='!bg-green-500'
-              >
-                {t('今日已签到')}
-              </Button>
-            </Tooltip>
-          ) : canCheckin ? (
-            <Button
-              type='primary'
-              theme='solid'
-              block
-              loading={checkinLoading}
-              onClick={handleCheckin}
-              icon={<CalendarCheck size={16} />}
-              className='!bg-orange-500 hover:!bg-orange-600'
-            >
-              {t('立即签到')}
-            </Button>
-          ) : (
-            <Tooltip content={checkinStatus?.reason || t('当前额度超过签到阈值')}>
-              <Button
-                type='primary'
-                theme='outline'
-                disabled
-                block
-                icon={<AlertCircle size={16} />}
-              >
-                {t('暂不可签到')}
-              </Button>
-            </Tooltip>
-          )}
-        </div>
+        <Typography.Text className='text-sm text-gray-500 block'>
+          {t('当前额度')} {renderQuota(checkinStatus?.current_quota || userState?.user?.quota || 0)}，
+          {t('需低于')} {renderQuota(checkinStatus?.quota_threshold || 0)} {t('才可签到')}
+        </Typography.Text>
       </div>
     </Card>
   );

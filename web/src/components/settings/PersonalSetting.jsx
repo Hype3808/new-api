@@ -448,16 +448,7 @@ const PersonalSetting = () => {
           {/* 顶部用户信息区域 */}
           <UserInfoHeader t={t} userState={userState} />
 
-          {/* 签到卡片 */}
-          <div className='mt-4 md:mt-6'>
-            <CheckinCard
-              t={t}
-              userState={userState}
-              onCheckinSuccess={getUserData}
-            />
-          </div>
-
-          {/* 账户管理和其他设置 */}
+          {/* 账户管理、签到卡片和其他设置 */}
           <div className='grid grid-cols-1 xl:grid-cols-2 items-start gap-4 md:gap-6 mt-4 md:mt-6'>
             {/* 左侧：账户管理设置 */}
             <AccountManagement
@@ -479,13 +470,23 @@ const PersonalSetting = () => {
               onPasskeyDelete={handleRemovePasskey}
             />
 
-            {/* 右侧：其他设置 */}
-            <NotificationSettings
-              t={t}
-              notificationSettings={notificationSettings}
-              handleNotificationSettingChange={handleNotificationSettingChange}
-              saveNotificationSettings={saveNotificationSettings}
-            />
+            {/* 右侧：签到卡片和其他设置 */}
+            <div className='flex flex-col gap-4 md:gap-6'>
+              {/* 签到卡片 */}
+              <CheckinCard
+                t={t}
+                userState={userState}
+                onCheckinSuccess={getUserData}
+              />
+
+              {/* 其他设置 */}
+              <NotificationSettings
+                t={t}
+                notificationSettings={notificationSettings}
+                handleNotificationSettingChange={handleNotificationSettingChange}
+                saveNotificationSettings={saveNotificationSettings}
+              />
+            </div>
           </div>
         </div>
       </div>
