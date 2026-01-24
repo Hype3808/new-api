@@ -28,8 +28,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      // Some environments look for the minified CSS export which is not declared in exports.
-      '@douyinfe/semi-ui/dist/css/semi.min.css': '@douyinfe/semi-ui/dist/css/semi.css',
+      // Map the non-exported CSS path to the exported minified stylesheet to satisfy Vite/rollup resolution.
+      '@douyinfe/semi-ui/dist/css/semi.css': '@douyinfe/semi-ui/dist/css/semi.min.css',
     },
   },
   plugins: [
