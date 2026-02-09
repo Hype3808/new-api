@@ -450,28 +450,8 @@ const PersonalSetting = () => {
 
           {/* 账户管理、签到卡片和其他设置 */}
           <div className='grid grid-cols-1 xl:grid-cols-2 items-start gap-4 md:gap-6 mt-4 md:mt-6'>
-            {/* 左侧：账户管理设置 */}
-            <AccountManagement
-              t={t}
-              userState={userState}
-              status={status}
-              systemToken={systemToken}
-              setShowEmailBindModal={setShowEmailBindModal}
-              setShowWeChatBindModal={setShowWeChatBindModal}
-              generateAccessToken={generateAccessToken}
-              handleSystemTokenClick={handleSystemTokenClick}
-              setShowChangePasswordModal={setShowChangePasswordModal}
-              setShowAccountDeleteModal={setShowAccountDeleteModal}
-              passkeyStatus={passkeyStatus}
-              passkeySupported={passkeySupported}
-              passkeyRegisterLoading={passkeyRegisterLoading}
-              passkeyDeleteLoading={passkeyDeleteLoading}
-              onPasskeyRegister={handleRegisterPasskey}
-              onPasskeyDelete={handleRemovePasskey}
-            />
-
             {/* 右侧：签到卡片和其他设置 */}
-            <div className='flex flex-col gap-4 md:gap-6'>
+            <div className='flex flex-col gap-4 md:gap-6 order-1 md:order-1 xl:order-2'>
               {/* 签到卡片 */}
               <CheckinCard
                 t={t}
@@ -485,6 +465,28 @@ const PersonalSetting = () => {
                 notificationSettings={notificationSettings}
                 handleNotificationSettingChange={handleNotificationSettingChange}
                 saveNotificationSettings={saveNotificationSettings}
+              />
+            </div>
+
+            {/* 左侧：账户管理设置 */}
+            <div className='order-2 md:order-2 xl:order-1'>
+              <AccountManagement
+                t={t}
+                userState={userState}
+                status={status}
+                systemToken={systemToken}
+                setShowEmailBindModal={setShowEmailBindModal}
+                setShowWeChatBindModal={setShowWeChatBindModal}
+                generateAccessToken={generateAccessToken}
+                handleSystemTokenClick={handleSystemTokenClick}
+                setShowChangePasswordModal={setShowChangePasswordModal}
+                setShowAccountDeleteModal={setShowAccountDeleteModal}
+                passkeyStatus={passkeyStatus}
+                passkeySupported={passkeySupported}
+                passkeyRegisterLoading={passkeyRegisterLoading}
+                passkeyDeleteLoading={passkeyDeleteLoading}
+                onPasskeyRegister={handleRegisterPasskey}
+                onPasskeyDelete={handleRemovePasskey}
               />
             </div>
           </div>

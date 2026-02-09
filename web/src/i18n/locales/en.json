@@ -295,6 +295,7 @@
     "按总额度": "By Total Quota",
     "按剩余额度": "By Remaining Quota",
     "使用日志": "Usage Logs",
+    "自动刷新": "Auto Refresh",
     "使用模式": "Usage mode",
     "使用统计": "Usage Statistics",
     "使用认证器应用（如 Google Authenticator、Microsoft Authenticator）扫描下方二维码：": "Use an authenticator app (such as Google Authenticator, Microsoft Authenticator) to scan the QR code below:",

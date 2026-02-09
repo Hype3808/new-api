@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from '@douyinfe/semi-ui';
 import {
@@ -42,6 +42,8 @@ import { useTableCompactMode } from '../common/useTableCompactMode';
 
 export const useLogsData = () => {
   const { t } = useTranslation();
+  const AUTO_REFRESH_INTERVAL_MS = 3000;
+  const AUTO_REFRESH_STORAGE_KEY = 'logs-auto-refresh';
 
   // Define column keys for selection
   const COLUMN_KEYS = {
@@ -71,9 +73,12 @@ export const useLogsData = () => {
   const [logCount, setLogCount] = useState(0);
   const [pageSize, setPageSize] = useState(ITEMS_PER_PAGE);
   const [logType, setLogType] = useState(0);
+  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true);
 
   // User and admin
   const isAdminUser = isAdmin();
+  const autoRefreshTimerRef = useRef(null);
+  const autoRefreshInFlightRef = useRef(false);
   // Role-specific storage key to prevent different roles from overwriting each other
   const STORAGE_KEY = isAdminUser
     ? 'logs-table-columns-admin'
@@ -136,6 +141,22 @@ export const useLogsData = () => {
       initDefaultColumns();
     }
   }, []);
+
+  // Load saved auto-refresh preference
+  useEffect(() => {
+    const savedAutoRefresh = localStorage.getItem(AUTO_REFRESH_STORAGE_KEY);
+    if (savedAutoRefresh !== null) {
+      setAutoRefreshEnabled(savedAutoRefresh === 'true');
+    }
+  }, []);
+
+  // Persist auto-refresh preference
+  useEffect(() => {
+    localStorage.setItem(
+      AUTO_REFRESH_STORAGE_KEY,
+      autoRefreshEnabled ? 'true' : 'false',
+    );
+  }, [autoRefreshEnabled]);
 
   // Get default column visibility based on user role
   const getDefaultColumnVisibility = () => {
@@ -502,8 +523,16 @@ export const useLogsData = () => {
   };
 
   // Load logs function
-  const loadLogs = async (startIdx, pageSize, customLogType = null) => {
-    setLoading(true);
+  const loadLogs = async (
+    startIdx,
+    pageSize,
+    customLogType = null,
+    options = {},
+  ) => {
+    const { silent = false } = options;
+    if (!silent) {
+      setLoading(true);
+    }
 
     let url = '';
     const {
@@ -532,19 +561,24 @@ export const useLogsData = () => {
       url = `/api/log/self/?p=${startIdx}&page_size=${pageSize}&type=${currentLogType}&token_name=${token_name}&model_name=${model_name}&start_timestamp=${localStartTimestamp}&end_timestamp=${localEndTimestamp}&group=${group}`;
     }
     url = encodeURI(url);
-    const res = await API.get(url);
-    const { success, message, data } = res.data;
-    if (success) {
-      const newPageData = data.items;
-      setActivePage(data.page);
-      setPageSize(data.page_size);
-      setLogCount(data.total);
+    try {
+      const res = await API.get(url);
+      const { success, message, data } = res.data;
+      if (success) {
+        const newPageData = data.items;
+        setActivePage(data.page);
+        setPageSize(data.page_size);
+        setLogCount(data.total);
 
-      setLogsFormat(newPageData);
-    } else {
-      showError(message);
+        setLogsFormat(newPageData);
+      } else {
+        showError(message);
+      }
+    } finally {
+      if (!silent) {
+        setLoading(false);
+      }
     }
-    setLoading(false);
   };
 
   // Page handlers
@@ -569,6 +603,28 @@ export const useLogsData = () => {
     setActivePage(1);
     handleEyeClick();
     await loadLogs(1, pageSize);
+  };
+
+  const refreshCurrentPage = async (options = {}) => {
+    if (!formApi || loading || loadingStat) {
+      return;
+    }
+    if (autoRefreshInFlightRef.current) {
+      return;
+    }
+    autoRefreshInFlightRef.current = true;
+    try {
+      if (showStat) {
+        if (isAdminUser) {
+          await getLogStat();
+        } else {
+          await getLogSelfStat();
+        }
+      }
+      await loadLogs(activePage, pageSize, null, options);
+    } finally {
+      autoRefreshInFlightRef.current = false;
+    }
   };
 
   // Copy text function
@@ -600,6 +656,33 @@ export const useLogsData = () => {
     }
   }, [formApi]);
 
+  useEffect(() => {
+    if (!formApi || !autoRefreshEnabled) {
+      return;
+    }
+    if (autoRefreshTimerRef.current) {
+      clearInterval(autoRefreshTimerRef.current);
+    }
+    autoRefreshTimerRef.current = setInterval(() => {
+      refreshCurrentPage({ silent: true }).catch(() => {});
+    }, AUTO_REFRESH_INTERVAL_MS);
+
+    return () => {
+      if (autoRefreshTimerRef.current) {
+        clearInterval(autoRefreshTimerRef.current);
+        autoRefreshTimerRef.current = null;
+      }
+    };
+  }, [
+    formApi,
+    activePage,
+    pageSize,
+    logType,
+    showStat,
+    isAdminUser,
+    autoRefreshEnabled,
+  ]);
+
   // Check if any record has expandable content
   const hasExpandableRows = () => {
     return logs.some(
@@ -620,6 +703,7 @@ export const useLogsData = () => {
     logType,
     stat,
     isAdminUser,
+    autoRefreshEnabled,
 
     // Form state
     formApi,
@@ -651,11 +735,13 @@ export const useLogsData = () => {
     handlePageChange,
     handlePageSizeChange,
     refresh,
+    refreshCurrentPage,
     copyText,
     handleEyeClick,
     setLogsFormat,
     hasExpandableRows,
     setLogType,
+    setAutoRefreshEnabled,
 
     // Translation
     t,
