@@ -38,6 +38,21 @@ func formatQuotaWithCurrency(quota int) string {
 	return fmt.Sprintf("%s%.2f", symbol, displayAmount)
 }
 
+func checkQuotaThreshold(userQuota int, setting *checkin_setting.CheckinSetting) (bool, string) {
+	if setting.QuotaThresholdInclusive {
+		if userQuota > setting.QuotaThreshold {
+			return false, fmt.Sprintf("当前额度超过签到阈值（%s），无法签到", formatQuotaWithCurrency(setting.QuotaThreshold))
+		}
+		return true, ""
+	}
+
+	if userQuota >= setting.QuotaThreshold {
+		return false, fmt.Sprintf("当前额度达到或超过签到阈值（%s），无法签到", formatQuotaWithCurrency(setting.QuotaThreshold))
+	}
+
+	return true, ""
+}
+
 const (
 	// CheckinCacheKeyFmt is the Redis key format for checkin status
 	// Format: checkin:{userId}:{date}
@@ -116,8 +131,9 @@ func CanCheckin(userId int) (bool, string, error) {
 	if err != nil {
 		return false, "", err
 	}
-	if userQuota >= setting.QuotaThreshold {
-		return false, fmt.Sprintf("当前额度超过签到阈值（%s），无法签到", formatQuotaWithCurrency(setting.QuotaThreshold)), nil
+	canCheckin, reason := checkQuotaThreshold(userQuota, setting)
+	if !canCheckin {
+		return false, reason, nil
 	}
 
 	return true, "", nil
@@ -158,10 +174,11 @@ func DoCheckin(userId int) (*dto.CheckinResult, error) {
 	}
 
 	// Check quota threshold
-	if quotaBefore >= setting.QuotaThreshold {
+	canCheckin, reason := checkQuotaThreshold(quotaBefore, setting)
+	if !canCheckin {
 		return &dto.CheckinResult{
 			Success: false,
-			Message: fmt.Sprintf("当前额度超过签到阈值（%s），无法签到", formatQuotaWithCurrency(setting.QuotaThreshold)),
+			Message: reason,
 		}, nil
 	}
 
@@ -217,9 +234,10 @@ func GetCheckinStatus(userId int) (*dto.CheckinStatus, error) {
 	setting := checkin_setting.GetCheckinSetting()
 
 	status := &dto.CheckinStatus{
-		Enabled:        setting.Enabled,
-		RewardQuota:    setting.RewardQuota,
-		QuotaThreshold: setting.QuotaThreshold,
+		Enabled:                 setting.Enabled,
+		RewardQuota:             setting.RewardQuota,
+		QuotaThreshold:          setting.QuotaThreshold,
+		QuotaThresholdInclusive: setting.QuotaThresholdInclusive,
 	}
 
 	// If feature is disabled, return early
@@ -256,11 +274,14 @@ func GetCheckinStatus(userId int) (*dto.CheckinStatus, error) {
 	if hasCheckedIn {
 		status.CanCheckin = false
 		status.Reason = "今日已签到，请明天再来"
-	} else if userQuota >= setting.QuotaThreshold {
-		status.CanCheckin = false
-		status.Reason = fmt.Sprintf("当前额度超过签到阈值（%s），无法签到", formatQuotaWithCurrency(setting.QuotaThreshold))
 	} else {
-		status.CanCheckin = true
+		canCheckin, reason := checkQuotaThreshold(userQuota, setting)
+		if !canCheckin {
+			status.CanCheckin = false
+			status.Reason = reason
+		} else {
+			status.CanCheckin = true
+		}
 	}
 
 	return status, nil

@@ -31,11 +31,13 @@ import {
 export default function SettingsCheckin(props) {
   const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
-  const [inputs, setInputs] = useState({
+  const defaultInputs = {
     'checkin.enabled': false,
     'checkin.reward_quota': '',
     'checkin.quota_threshold': '',
-  });
+    'checkin.quota_threshold_inclusive': false,
+  };
+  const [inputs, setInputs] = useState(defaultInputs);
   const refForm = useRef();
   const [inputsRow, setInputsRow] = useState(inputs);
 
@@ -75,9 +77,9 @@ export default function SettingsCheckin(props) {
   }
 
   useEffect(() => {
-    const currentInputs = {};
+    const currentInputs = { ...defaultInputs };
     for (let key in props.options) {
-      if (Object.keys(inputs).includes(key)) {
+      if (Object.keys(defaultInputs).includes(key)) {
         currentInputs[key] = props.options[key];
       }
     }
@@ -146,6 +148,23 @@ export default function SettingsCheckin(props) {
                     setInputs({
                       ...inputs,
                       'checkin.quota_threshold': String(value),
+                    })
+                  }
+                />
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={8} xl={8}>
+                <Form.Switch
+                  field={'checkin.quota_threshold_inclusive'}
+                  label={t('阈值包含等于')}
+                  size='default'
+                  checkedText='｜'
+                  uncheckedText='〇'
+                  extraText={t('开启后用户额度小于或等于阈值也可签到')}
+                  disabled={!inputs['checkin.enabled']}
+                  onChange={(value) =>
+                    setInputs({
+                      ...inputs,
+                      'checkin.quota_threshold_inclusive': value,
                     })
                   }
                 />

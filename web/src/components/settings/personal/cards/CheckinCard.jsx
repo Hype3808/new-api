@@ -123,6 +123,9 @@ const CheckinCard = ({ t, userState, onCheckinSuccess }) => {
 
   const canCheckin = checkinStatus?.can_checkin && !checkinStatus?.has_checked_in;
   const hasCheckedIn = checkinStatus?.has_checked_in;
+  const thresholdText = checkinStatus?.quota_threshold_inclusive
+    ? t('需低于或等于')
+    : t('需低于');
 
   return (
     <Card className='!rounded-2xl text-sm' bodyStyle={{ padding: '16px' }}>
@@ -181,7 +184,7 @@ const CheckinCard = ({ t, userState, onCheckinSuccess }) => {
           type='tertiary'
         >
           {t('当前额度')} {renderQuota(checkinStatus?.current_quota || userState?.user?.quota || 0)}，
-          {t('需低于')} {renderQuota(checkinStatus?.quota_threshold || 0)} {t('才可签到')}
+          {thresholdText} {renderQuota(checkinStatus?.quota_threshold || 0)} {t('才可签到')}
         </Typography.Text>
       </div>
     </Card>
